@@ -8,7 +8,7 @@ Daily **cost rental** alerts for Ireland. The system scrapes three sources, stor
 |---|---|
 | Daily scrape | `run_daily.py` → affordablehomes.ie, lda.ie, tuathhousing.ie |
 | Database | `listings.db` (~202 schemes, `category = rent`) |
-| CSV export | `export_csv.py` → `listings-export.csv` |
+| CSV export | `export_csv.py` → `listings-export.csv` (all) + `listings-open.csv` (open only) |
 | Alerts | `diff.py` + `notify.py` → CallMeBot |
 | Automation | GitHub Actions `.github/workflows/daily-scrape.yml` (07:00 UTC) |
 

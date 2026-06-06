@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export listings.db to listings-export.csv."""
+"""Export listings.db to CSV files."""
 
 import csv
 import sqlite3
@@ -10,6 +10,31 @@ from locations import format_city_neighborhood
 
 DB_PATH = Path(__file__).parent / "listings.db"
 OUT_PATH = Path(__file__).parent / "listings-export.csv"
+OPEN_OUT_PATH = Path(__file__).parent / "listings-open.csv"
+
+CSV_HEADERS = [
+    "name",
+    "location",
+    "address",
+    "price",
+    "quantity",
+    "beds",
+    "is_open",
+    "income_min",
+    "income_max",
+    "listed_at",
+    "open_on",
+    "close_on",
+    "source",
+    "link",
+]
+
+SELECT_SQL = """
+    SELECT title, location, address, price_from, quantity, bedrooms, status,
+           income_min, income_max,
+           listed_at, applications_open_at, applications_close_at, source, url
+    FROM listings WHERE category = 'rent'
+"""
 
 
 def fmt_date(iso: str | None) -> str:
@@ -36,38 +61,10 @@ def fmt_beds(bedrooms: str | None) -> str:
     return bedrooms.removesuffix(" bed").strip()
 
 
-def export_csv() -> int:
-    conn = sqlite3.connect(DB_PATH)
-    rows = conn.execute(
-        """
-        SELECT title, location, address, price_from, quantity, bedrooms, status,
-               income_min, income_max,
-               listed_at, applications_open_at, applications_close_at, source, url
-        FROM listings WHERE category = 'rent'
-        ORDER BY lower(title), source
-        """
-    ).fetchall()
-
-    with OUT_PATH.open("w", newline="", encoding="utf-8") as handle:
+def _write_rows(path: Path, rows) -> int:
+    with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
-        writer.writerow(
-            [
-                "name",
-                "location",
-                "address",
-                "price",
-                "quantity",
-                "beds",
-                "is_open",
-                "income_min",
-                "income_max",
-                "listed_at",
-                "open_on",
-                "close_on",
-                "source",
-                "link",
-            ]
-        )
+        writer.writerow(CSV_HEADERS)
         for (
             title,
             location,
@@ -102,10 +99,30 @@ def export_csv() -> int:
                     url or "",
                 ]
             )
-
     return len(rows)
 
 
+def export_csv() -> int:
+    conn = sqlite3.connect(DB_PATH)
+    rows = conn.execute(
+        SELECT_SQL + " ORDER BY lower(title), source"
+    ).fetchall()
+    return _write_rows(OUT_PATH, rows)
+
+
+def export_open_csv() -> int:
+    conn = sqlite3.connect(DB_PATH)
+    rows = conn.execute(
+        SELECT_SQL + " AND status = 'open' ORDER BY lower(title), source"
+    ).fetchall()
+    return _write_rows(OPEN_OUT_PATH, rows)
+
+
+def export_all() -> tuple[int, int]:
+    return export_csv(), export_open_csv()
+
+
 if __name__ == "__main__":
-    count = export_csv()
-    print(f"Wrote {count} rows to {OUT_PATH}")
+    total, open_count = export_all()
+    print(f"Wrote {total} rows to {OUT_PATH}")
+    print(f"Wrote {open_count} rows to {OPEN_OUT_PATH}")

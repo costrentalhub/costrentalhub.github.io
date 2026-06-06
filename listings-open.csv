@@ -1,0 +1,8 @@
+name,location,address,price,quantity,beds,is_open,income_min,income_max,listed_at,open_on,close_on,source,link
+"Dun Óir, Kilternan, Dublin 18",Dublin - D18 Kilternan,"Glenamuck Road, Dun Óir, Kilternan, Dublin 18, Ireland",1486,1,2,TRUE,49714,66000,,,10/06/2026,lda,https://lda.ie/affordable-homes/lda-cost-rental/dun-óir-kilternan-dublin-18-4
+Folkstown Park,Dublin - Balbriggan,"Folkstown Park, Balbriggan, Co. Dublin, Ireland",1150,40,1-3,TRUE,,,03/06/2026,04/06/2026,,affordablehomes,https://affordablehomes.ie/rent/folkstownpark1/
+Folkstown Park,Dublin - Balbriggan,"Folkstown Park, Balbriggan, Co. Dublin, Ireland",1150,40,1-3,TRUE,,,,04/06/2026,,tuath,https://tuathhousing.ie/properties/folkstown-park-2/
+"Harpur Lane, Leixlip, Co. Kildare",Kildare - Leixlip,"Harpur Lane, Leixlip, Co. Kildare, Ireland",1671,1,2,TRUE,54343,59000,,,10/06/2026,lda,https://lda.ie/affordable-homes/lda-cost-rental/harpur-lane-leixlip-co-kildare-2
+Mountneil,Wexford - Carrickperish,"Mountneil, Carrickperish, Co. Wexford, Ireland",1219,1,3,TRUE,,,04/06/2026,04/06/2026,11/06/2026,affordablehomes,https://affordablehomes.ie/rent/mountneil1/
+Mountneil,Waterford - Carrickperish,"Mountneil, Carrickperish, Co. Waterford, Ireland",1219,1,3,TRUE,,,,04/06/2026,11/06/2026,tuath,https://tuathhousing.ie/properties/mountneil/
+"Parklands, Citywest, Dublin 24",Dublin - D24 Citywest,"Citywest Dr, Citywest, Co. Dublin, Ireland",1488,1,3,TRUE,49714,66000,,,10/06/2026,lda,https://lda.ie/affordable-homes/lda-cost-rental/parklands-citywest-dublin-24-4

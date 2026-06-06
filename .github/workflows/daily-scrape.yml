@@ -36,5 +36,5 @@ jobs:
       - name: Commit database and CSV updates
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update listings.db and listings-export.csv"
-          file_pattern: listings.db listings-export.csv
+          commit_message: "chore: update listings.db and CSV exports"
+          file_pattern: listings.db listings-export.csv listings-open.csv
