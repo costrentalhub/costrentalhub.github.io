@@ -8,7 +8,13 @@ from dataclasses import dataclass, field
 from db import connect, get_meta, init_db, mark_notified, set_meta, upsert_listings
 from diff import find_news
 from models import Listing
-from notify import format_message, format_test_message, send_whatsapp
+from notify import (
+    email_configured,
+    format_message,
+    format_test_message,
+    send_email,
+    send_whatsapp,
+)
 from schemes import enrich_cross_source_open_dates
 from scrapers import scrape_affordablehomes, scrape_lda, scrape_tuath
 
@@ -105,6 +111,7 @@ def main() -> int:
             whatsapp_configured=whatsapp_ok,
         )
         send_whatsapp(message, dry_run=args.dry_run)
+        send_email(message, dry_run=args.dry_run)
         print(message)
         return 0
 
@@ -121,7 +128,9 @@ def main() -> int:
     else:
         message = format_message(news, total_scraped=len(listings))
 
-    sent = send_whatsapp(message, dry_run=args.dry_run)
+    sent_whatsapp = send_whatsapp(message, dry_run=args.dry_run)
+    sent_email = send_email(message, dry_run=args.dry_run)
+    sent = sent_whatsapp or sent_email
 
     if sent:
         if bootstrap:

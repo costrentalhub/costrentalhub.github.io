@@ -1,6 +1,9 @@
 import os
+import smtplib
+import ssl
 import urllib.parse
 from datetime import date, datetime
+from email.message import EmailMessage
 from typing import List
 from zoneinfo import ZoneInfo
 
@@ -222,6 +225,54 @@ def format_test_message(
         ]
     )
     return "\n".join(lines).strip()
+
+
+def email_configured() -> bool:
+    return bool(
+        os.environ.get("SMTP_USER", "").strip()
+        and os.environ.get("SMTP_PASSWORD", "").strip()
+        and os.environ.get("EMAIL_TO", "").strip()
+    )
+
+
+def email_subject(message: str) -> str:
+    """Subject line for Mail app / Shortcuts (filter: 'Cost Rental Alert')."""
+    first_line = message.split("\n", 1)[0].strip()
+    if first_line.startswith("🏠"):
+        return first_line.removeprefix("🏠 ").strip()
+    return f"Cost Rental Alert — {datetime.now(TZ).strftime('%d/%m/%Y')}"
+
+
+def send_email(message: str, dry_run: bool = False) -> bool:
+    user = os.environ.get("SMTP_USER", "").strip()
+    password = os.environ.get("SMTP_PASSWORD", "").strip()
+    to_addr = os.environ.get("EMAIL_TO", "").strip()
+    from_addr = os.environ.get("EMAIL_FROM", "").strip() or user
+    host = os.environ.get("SMTP_HOST", "smtp.gmail.com").strip()
+    port = int(os.environ.get("SMTP_PORT", "587"))
+
+    if dry_run or not user or not password or not to_addr:
+        print("--- Email (dry-run / missing credentials) ---")
+        print(f"To: {to_addr or '(not set)'}")
+        print(f"Subject: {email_subject(message)}")
+        print(message)
+        print("--- end ---")
+        return False
+
+    mail = EmailMessage()
+    mail["Subject"] = email_subject(message)
+    mail["From"] = from_addr
+    mail["To"] = to_addr
+    mail.set_content(message)
+
+    context = ssl.create_default_context()
+    with smtplib.SMTP(host, port, timeout=30) as smtp:
+        smtp.starttls(context=context)
+        smtp.login(user, password)
+        smtp.send_message(mail)
+
+    print(f"Email sent to {to_addr}.")
+    return True
 
 
 def send_whatsapp(message: str, dry_run: bool = False) -> bool:

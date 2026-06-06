@@ -4,7 +4,7 @@ Daily scraper for affordable housing (cost rental) in Ireland.
 
 **Sources:** [affordablehomes.ie](https://affordablehomes.ie/rent/), [LDA](https://lda.ie/affordable-homes/lda-cost-rental/), [Tuath Housing](https://tuathhousing.ie/cost-rental/)
 
-**Output:** WhatsApp message (via CallMeBot) to your private number — you review and post to Community Announcements.
+**Output:** daily alert via **WhatsApp** (CallMeBot) and/or **email** (Gmail SMTP) — you review and post to Community Announcements.
 
 ## Quick setup
 
@@ -33,6 +33,13 @@ In **Settings → Secrets and variables → Actions → New repository secret**:
 |---|---|
 | `CALLMEBOT_PHONE` | Your number with country code, e.g. `+353871234567` |
 | `CALLMEBOT_APIKEY` | Apikey received from CallMeBot |
+| `SMTP_USER` | Gmail address, e.g. `you@gmail.com` |
+| `SMTP_PASSWORD` | Gmail [App Password](https://myaccount.google.com/apppasswords) (16 chars, not your login password) |
+| `EMAIL_TO` | Where to receive alerts (usually same Gmail) |
+
+Email subject is always `Cost Rental Alert — DD/MM/YYYY` (for iOS Shortcuts **Email** automation).
+
+Optional: `SMTP_HOST` (default `smtp.gmail.com`), `SMTP_PORT` (default `587`), `EMAIL_FROM` (default `SMTP_USER`).
 
 ### 4. Test locally
 
@@ -50,6 +57,9 @@ python run_daily.py --dry-run
 # Send to your WhatsApp (export secrets locally)
 export CALLMEBOT_PHONE="+353..."
 export CALLMEBOT_APIKEY="..."
+export SMTP_USER="you@gmail.com"
+export SMTP_PASSWORD="xxxx xxxx xxxx xxxx"
+export EMAIL_TO="you@gmail.com"
 python run_daily.py
 ```
 
@@ -73,6 +83,6 @@ run_daily.py          # entrypoint
 scrapers/             # affordablehomes, lda, tuath
 db.py                 # SQLite
 diff.py               # detects updates
-notify.py             # formats message + CallMeBot
+notify.py             # formats message + WhatsApp / email
 .github/workflows/    # daily cron
 ```
