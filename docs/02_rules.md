@@ -39,10 +39,18 @@ Derived in `export_csv.resolve_export_status()` from stored status + `applicatio
 
 Bootstrap: first WhatsApp/email send is a short setup message; no flood of all open schemes.
 
+## Daily digest lists
+
+Every non-bootstrap message includes:
+
+- `NEW APPLICATIONS`: opened today or changed to open today; `none` when empty
+- `CLOSING SOON`: currently open listings with `applications_close_at` within 14 days
+- `OPENING SOON`: non-open listings with `applications_open_at` within 14 days, including already-notified listings
+
 ## Message formatting (`notify.py`)
 
 - **Dedupe:** merge by `scheme_key`; prefer open status, then source priority
-- **Applications Open:** sorted by `applications_close_at` ascending (closes soonest first)
+- **New Applications / Closing Soon:** sorted by `applications_close_at` ascending (closes soonest first)
 - **Opening Soon:** sorted by `applications_open_at` ascending (opens soonest first)
 - **No close date:** `Closes in: not informed`
 - **Email subject:** `Cost Rental Alert — DD/MM/YYYY` (for iOS Shortcuts filter)

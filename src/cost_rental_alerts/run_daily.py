@@ -6,7 +6,7 @@ import traceback
 from dataclasses import dataclass, field
 
 from cost_rental_alerts.db import connect, get_meta, init_db, mark_notified, set_meta, upsert_listings
-from cost_rental_alerts.diff import find_news
+from cost_rental_alerts.diff import find_closing_soon, find_news, find_opening_soon
 from cost_rental_alerts.export_csv import resolve_export_status
 from cost_rental_alerts.models import Listing
 from cost_rental_alerts.notify import (
@@ -126,6 +126,8 @@ def main() -> int:
         return 0
 
     news = find_news(conn)
+    closing_soon = find_closing_soon(conn)
+    opening_soon = find_opening_soon(conn)
 
     # First WhatsApp run: avoid flooding with every currently-open scheme.
     bootstrap = get_meta(conn, "bootstrap_done") is None
@@ -136,7 +138,12 @@ def main() -> int:
             f"From tomorrow you'll receive daily updates only."
         )
     else:
-        message = format_message(news, total_scraped=len(listings))
+        message = format_message(
+            news,
+            total_scraped=len(listings),
+            closing_soon=closing_soon,
+            opening_soon=opening_soon,
+        )
 
     sent_whatsapp = send_whatsapp(message, dry_run=args.dry_run)
     sent_email = send_email(message, dry_run=args.dry_run)

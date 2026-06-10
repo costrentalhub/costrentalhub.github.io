@@ -8,7 +8,7 @@ run_daily.py
   → enrich_cross_source_open_dates()
   → normalize_listing_statuses()
   → upsert_listings() → data/listings.db
-  → find_news() → format_message()
+  → find_news() + daily digest lists → format_message()
   → send_whatsapp() + send_email()
 ```
 
@@ -47,7 +47,7 @@ cost-rental-alerts/
 | `scrapers/` | Fetch and parse listings from each source |
 | `schemes.py` | `scheme_key` identity; AH-first merge; cross-source date enrichment |
 | `db.py` | Schema, upsert, notification tracking, meta (`bootstrap_done`) |
-| `diff.py` | `find_news()` — opened today + opening soon (14 days) |
+| `diff.py` | `find_news()` plus daily opening/closing soon digest lists |
 | `notify.py` | Format message, dedupe by scheme, sort, send WhatsApp/email |
 | `export_csv.py` | Export DB to CSV with derived `status` and formatted dates |
 
