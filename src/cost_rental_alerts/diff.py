@@ -4,7 +4,7 @@ from typing import List
 
 import sqlite3
 
-from db import TZ, today_iso, was_notified
+from cost_rental_alerts.db import TZ, today_iso, was_notified
 
 
 @dataclass
@@ -86,7 +86,8 @@ def find_news(conn: sqlite3.Connection, opening_soon_days: int = 14) -> List[New
 
         open_at = _parse_date(row["applications_open_at"])
         if (
-            open_at
+            row["status"] != "open"
+            and open_at
             and today < open_at <= soon_end
             and not was_notified(conn, row["id"], "opening_soon")
         ):

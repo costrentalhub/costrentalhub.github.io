@@ -4,7 +4,9 @@ Daily scraper for affordable housing (cost rental) in Ireland.
 
 **Sources:** [affordablehomes.ie](https://affordablehomes.ie/rent/), [LDA](https://lda.ie/affordable-homes/lda-cost-rental/), [Tuath Housing](https://tuathhousing.ie/cost-rental/)
 
-**Output:** daily alert via **WhatsApp** (CallMeBot) and/or **email** (Gmail SMTP) — you review and post to Community Announcements.
+**Output:** daily alert via **WhatsApp** (CallMeBot) and/or **email** (Gmail SMTP).
+
+📖 Full docs: [docs/00_overview.md](docs/00_overview.md)
 
 ## Quick setup
 
@@ -12,77 +14,47 @@ Daily scraper for affordable housing (cost rental) in Ireland.
 
 1. Add `+34 644 31 95 65` to your phone contacts (name: CallMeBot)
 2. Send on WhatsApp: `I allow callmebot to send me messages`
-3. You receive a reply with your `apikey`
-4. Save the apikey — do not commit it to the repo
+3. Save the `apikey` from the reply — do not commit it
 
-### 2. GitHub repository (private)
-
-```bash
-cd cost-rental-alerts
-git init
-git add .
-git commit -m "Initial cost rental alerts scraper"
-gh repo create cost-rental-alerts --private --source=. --push
-```
-
-### 3. GitHub Secrets
-
-In **Settings → Secrets and variables → Actions → New repository secret**:
+### 2. GitHub Secrets
 
 | Secret | Value |
 |---|---|
-| `CALLMEBOT_PHONE` | Your number with country code, e.g. `+353871234567` |
-| `CALLMEBOT_APIKEY` | Apikey received from CallMeBot |
-| `SMTP_USER` | Gmail address, e.g. `you@gmail.com` |
-| `SMTP_PASSWORD` | Gmail [App Password](https://myaccount.google.com/apppasswords) (16 chars, not your login password) |
-| `EMAIL_TO` | Where to receive alerts (usually same Gmail) |
+| `CALLMEBOT_PHONE` | e.g. `+353871234567` |
+| `CALLMEBOT_APIKEY` | From CallMeBot |
+| `SMTP_USER` | Gmail address |
+| `SMTP_PASSWORD` | Gmail [App Password](https://myaccount.google.com/apppasswords) |
+| `EMAIL_TO` | Alert recipient |
 
-Email subject is always `Cost Rental Alert — DD/MM/YYYY` (for iOS Shortcuts **Email** automation).
-
-Optional: `SMTP_HOST` (default `smtp.gmail.com`), `SMTP_PORT` (default `587`), `EMAIL_FROM` (default `SMTP_USER`).
-
-### 4. Test locally
+### 3. Test locally
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+pip install -e .
 
-# First time: create the database only (recommended before automatic WhatsApp)
-python run_daily.py --scrape-only
-
-# Preview message without sending
-python run_daily.py --dry-run
-
-# Send to your WhatsApp (export secrets locally)
-export CALLMEBOT_PHONE="+353..."
-export CALLMEBOT_APIKEY="..."
-export SMTP_USER="you@gmail.com"
-export SMTP_PASSWORD="xxxx xxxx xxxx xxxx"
-export EMAIL_TO="you@gmail.com"
-python run_daily.py
+python -m cost_rental_alerts.run_daily --scrape-only
+python -m cost_rental_alerts.run_daily --dry-run
 ```
 
-### 5. GitHub Actions
+### 4. GitHub Actions
 
-The workflow runs automatically at **07:00 UTC** (~08:00 Ireland). You can also run it manually via **Actions → Daily Cost Rental Scrape → Run workflow**.
+Runs at **07:00 UTC** daily. Manual run: **Actions → Daily Cost Rental Scrape → Run workflow**.
 
-## Behaviour
+## Data
 
-- **With updates:** lists applications opened today + schemes opening in the next 14 days
-- **No updates:** sends `✅ No updates today.`
-- **Database:** `listings.db` (SQLite, committed to the repo after each run)
-- **CSV exports** (regenerated and committed after each run; view in browser on GitHub):
-  - [listings-export.csv](https://github.com/mateussibila/cost-rental-alerts/blob/main/listings-export.csv) — all schemes
-  - [listings-open.csv](https://github.com/mateussibila/cost-rental-alerts/blob/main/listings-open.csv) — currently open only
+- `data/listings.db` — SQLite (committed after each run)
+- [listings-export.csv](data/listings-export.csv) — all schemes
+- [listings-open.csv](data/listings-open.csv) — open only
 
 ## Structure
 
 ```
-run_daily.py          # entrypoint
-scrapers/             # affordablehomes, lda, tuath
-db.py                 # SQLite
-diff.py               # detects updates
-notify.py             # formats message + WhatsApp / email
-.github/workflows/    # daily cron
+docs/                 # documentation
+src/cost_rental_alerts/   # Python package
+data/                 # database + CSV exports
+tests/
 ```
+
+See [docs/01_architecture.md](docs/01_architecture.md) for module details and [docs/04_open_tasks.md](docs/04_open_tasks.md) for backlog.

@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 
-from models import Listing
+from cost_rental_alerts.models import Listing
 
 
 def normalize_scheme_name(title: str) -> str:

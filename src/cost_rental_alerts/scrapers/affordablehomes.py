@@ -1,13 +1,13 @@
 import re
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from typing import Dict, List, Tuple
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
-from addresses import compose_address
-from models import Listing
-from scrapers.common import (
+from cost_rental_alerts.addresses import compose_address
+from cost_rental_alerts.models import Listing
+from cost_rental_alerts.scrapers.common import (
     fetch,
     normalize_bedrooms,
     normalize_status,
@@ -21,11 +21,31 @@ RENT_URL = f"{BASE_URL}/rent/"
 CALENDAR_URL = f"{BASE_URL}/rent/calendar/"
 
 
-def _calendar_events(html: str) -> Dict[str, Dict[str, str]]:
-    """Map slug -> {opened_at, closed_at} from calendar page (YYYY-MM-DD)."""
+def _parse_iso_date(value: str | None) -> date | None:
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value[:10])
+    except ValueError:
+        return None
+
+
+def _date_from_month_day(month: int, day: int, year: int) -> date | None:
+    try:
+        return date(year, month, day)
+    except ValueError:
+        return None
+
+
+def _iso_from_month_day(month: int, day: int, year: int) -> str | None:
+    parsed = _date_from_month_day(month, day, year)
+    return parsed.isoformat() if parsed else None
+
+
+def _calendar_events(html: str) -> Dict[str, Dict[str, Tuple[int, int]]]:
+    """Map slug -> {opened_md, closed_md} as (month, day) from calendar page."""
     soup = BeautifulSoup(html, "html.parser")
-    events: Dict[str, Dict[str, str]] = {}
-    year = datetime.now().year
+    events: Dict[str, Dict[str, Tuple[int, int]]] = {}
 
     for article in soup.select("article.calendar"):
         day_el = article.select_one("h4 span")
@@ -36,16 +56,15 @@ def _calendar_events(html: str) -> Dict[str, Dict[str, str]]:
             day = int(day_el.get_text(strip=True))
             month_name = month_el.get_text(strip=True)
             month = datetime.strptime(month_name, "%b").month
-            event_date = f"{year}-{month:02d}-{day:02d}"
         except ValueError:
             continue
 
         for block in article.select("div.open, div.close"):
             classes = block.get("class", [])
             if "open" in classes:
-                event_type = "opened_at"
+                event_type = "opened_md"
             elif "close" in classes:
-                event_type = "closed_at"
+                event_type = "closed_md"
             else:
                 continue
 
@@ -56,9 +75,73 @@ def _calendar_events(html: str) -> Dict[str, Dict[str, str]]:
                     continue
                 slug = slug_match.group(1)
                 bucket = events.setdefault(slug, {})
-                bucket[event_type] = event_date
+                bucket[event_type] = (month, day)
 
     return events
+
+
+def _resolve_calendar_dates(
+    opened_md: Tuple[int, int] | None,
+    closed_md: Tuple[int, int] | None,
+    listing: Listing,
+    today: date,
+) -> Tuple[str | None, str | None]:
+    """
+    Pick plausible years for month/day calendar events.
+
+    The AH calendar has no year; using the current year for every June event
+    turns past rounds (e.g. listed 2025) into false "opening soon" alerts.
+    """
+    listed = _parse_iso_date(listing.listed_at)
+    listed_year = listed.year if listed else None
+
+    def pair_for_year(year: int) -> Tuple[date | None, date | None]:
+        opened = (
+            _date_from_month_day(opened_md[0], opened_md[1], year) if opened_md else None
+        )
+        closed = (
+            _date_from_month_day(closed_md[0], closed_md[1], year) if closed_md else None
+        )
+        return opened, closed
+
+    if listing.status == "open":
+        for year in range(today.year, today.year - 4, -1):
+            opened, closed = pair_for_year(year)
+            if opened and opened <= today and (closed is None or closed >= today):
+                return (
+                    opened.isoformat(),
+                    closed.isoformat() if closed else None,
+                )
+        year = listed_year or today.year
+        opened, closed = pair_for_year(year)
+        return (
+            opened.isoformat() if opened else None,
+            closed.isoformat() if closed else None,
+        )
+
+    for year in range(today.year, today.year - 4, -1):
+        opened, closed = pair_for_year(year)
+        if closed and closed < today:
+            return (
+                opened.isoformat() if opened else None,
+                closed.isoformat(),
+            )
+
+    opened, closed = pair_for_year(today.year)
+    if (
+        opened
+        and opened > today
+        and listed
+        and listed >= today - timedelta(days=90)
+        and listed_year is not None
+        and listed_year >= today.year - 1
+    ):
+        return (
+            opened.isoformat(),
+            closed.isoformat() if closed else None,
+        )
+
+    return None, None
 
 
 def _parse_listing_page(html: str) -> List[Listing]:
@@ -120,8 +203,33 @@ def _detail_field(soup: BeautifulSoup, label: str) -> str | None:
     return None
 
 
-def _parse_detail(html: str) -> tuple[str | None, int | None, str | None, str | None]:
-    """Return (bedrooms, quantity, applications_close_at ISO date, detail location)."""
+def _parse_portal_dates(html: str) -> Tuple[str | None, str | None]:
+    """Parse explicit portal window text, e.g. '... 20th June 2024 up to ... 27th June 2024'."""
+    match = re.search(
+        r"Portal open for applications from.*?"
+        r"(\d{1,2})(?:st|nd|rd|th)?\s+(\w+)\s+(\d{4}).*?"
+        r"(?:up to|until).*?"
+        r"(\d{1,2})(?:st|nd|rd|th)?\s+(\w+)\s+(\d{4})",
+        html,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if not match:
+        return None, None
+    open_day, open_month, open_year, close_day, close_month, close_year = match.groups()
+    try:
+        open_at = f"{open_year}-{datetime.strptime(open_month[:3], '%b').month:02d}-{int(open_day):02d}"
+        close_at = (
+            f"{close_year}-{datetime.strptime(close_month[:3], '%b').month:02d}-{int(close_day):02d}"
+        )
+        return open_at, close_at
+    except ValueError:
+        return None, None
+
+
+def _parse_detail(
+    html: str,
+) -> tuple[str | None, int | None, str | None, str | None, str | None]:
+    """Return (bedrooms, quantity, open_at, close_at, detail location)."""
     soup = BeautifulSoup(html, "html.parser")
 
     bedrooms = None
@@ -135,6 +243,10 @@ def _parse_detail(html: str) -> tuple[str | None, int | None, str | None, str | 
         quantity = parse_quantity(raw_qty)
 
     detail_location = _detail_field(soup, "Location")
+
+    portal_open, portal_close = _parse_portal_dates(html)
+    if portal_open or portal_close:
+        return bedrooms, quantity, portal_open, portal_close, detail_location
 
     close_match = re.search(
         r"Applications Close:.*?(\d{1,2})\s+(\w+)\s+(\d{4})",
@@ -150,14 +262,16 @@ def _parse_detail(html: str) -> tuple[str | None, int | None, str | None, str | 
         except ValueError:
             pass
 
-    return bedrooms, quantity, close_at, detail_location
+    return bedrooms, quantity, None, close_at, detail_location
 
 
 def _enrich_listings(listings: List[Listing]) -> None:
     for listing in listings:
         try:
             detail_html = fetch(listing.url)
-            bedrooms, quantity, close_at, detail_location = _parse_detail(detail_html)
+            bedrooms, quantity, open_at, close_at, detail_location = _parse_detail(
+                detail_html
+            )
             listing.bedrooms = bedrooms
             listing.quantity = quantity
             listing.address = compose_address(
@@ -166,7 +280,9 @@ def _enrich_listings(listings: List[Listing]) -> None:
                 detail_location=detail_location,
                 page_html=detail_html,
             )
-            if listing.status == "open" and close_at:
+            if open_at:
+                listing.applications_open_at = open_at
+            if close_at:
                 listing.applications_close_at = close_at
         except Exception:
             continue
@@ -199,15 +315,18 @@ def scrape_affordablehomes() -> List[Listing]:
     except Exception:
         events = {}
 
+    today = datetime.now().date()
     for listing in listings:
         slug = listing.id.split(":", 1)[1]
         if slug not in events:
             continue
-        if events[slug].get("opened_at"):
-            listing.applications_open_at = events[slug]["opened_at"]
-        # Only use calendar close dates for open listings (avoid stale dates on old closed schemes)
-        if listing.status == "open" and events[slug].get("closed_at"):
-            listing.applications_close_at = events[slug]["closed_at"]
+        opened_md = events[slug].get("opened_md")
+        closed_md = events[slug].get("closed_md")
+        open_at, close_at = _resolve_calendar_dates(opened_md, closed_md, listing, today)
+        if open_at:
+            listing.applications_open_at = open_at
+        if close_at:
+            listing.applications_close_at = close_at
 
     _enrich_listings(listings)
     return listings

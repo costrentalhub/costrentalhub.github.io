@@ -3,14 +3,19 @@
 
 import csv
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
-from locations import format_city_neighborhood
+from cost_rental_alerts.locations import format_city_neighborhood
+from cost_rental_alerts.paths import DATA_DIR
 
-DB_PATH = Path(__file__).parent / "listings.db"
-OUT_PATH = Path(__file__).parent / "listings-export.csv"
-OPEN_OUT_PATH = Path(__file__).parent / "listings-open.csv"
+TZ = ZoneInfo("Europe/Dublin")
+OPENING_SOON_DAYS = 14
+
+DB_PATH = DATA_DIR / "listings.db"
+OUT_PATH = DATA_DIR / "listings-export.csv"
+OPEN_OUT_PATH = DATA_DIR / "listings-open.csv"
 
 CSV_HEADERS = [
     "name",
@@ -19,7 +24,7 @@ CSV_HEADERS = [
     "price",
     "quantity",
     "beds",
-    "is_open",
+    "status",
     "income_min",
     "income_max",
     "listed_at",
@@ -61,6 +66,32 @@ def fmt_beds(bedrooms: str | None) -> str:
     return bedrooms.removesuffix(" bed").strip()
 
 
+def resolve_export_status(
+    status: str | None,
+    applications_open_at: str | None,
+    *,
+    today: date | None = None,
+) -> str:
+    """Map stored scraper status to CSV values: open, closed, opening soon."""
+    if status == "open":
+        return "open"
+    if status in ("opening soon", "coming_soon", "opening_soon"):
+        return "opening soon"
+
+    ref = today or datetime.now(TZ).date()
+    if applications_open_at:
+        try:
+            open_at = date.fromisoformat(applications_open_at[:10])
+        except ValueError:
+            open_at = None
+        else:
+            soon_end = ref + timedelta(days=OPENING_SOON_DAYS)
+            if ref < open_at <= soon_end:
+                return "opening soon"
+
+    return "closed"
+
+
 def _write_rows(path: Path, rows) -> int:
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
@@ -89,7 +120,7 @@ def _write_rows(path: Path, rows) -> int:
                     fmt_price(price),
                     quantity if quantity is not None else "",
                     fmt_beds(bedrooms),
-                    "TRUE" if status == "open" else "FALSE",
+                    resolve_export_status(status, open_),
                     fmt_price(income_min),
                     fmt_price(income_max),
                     fmt_date(listed),

@@ -22,7 +22,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt && pip install -e .
 
       - name: Run daily scrape
         env:
@@ -31,13 +31,13 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
-        run: python run_daily.py
+        run: python -m cost_rental_alerts.run_daily
 
       - name: Export CSV
-        run: python export_csv.py
+        run: python -m cost_rental_alerts.export_csv
 
       - name: Commit database and CSV updates
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: update listings.db and CSV exports"
-          file_pattern: listings.db listings-export.csv listings-open.csv
+          file_pattern: data/listings.db data/listings-export.csv data/listings-open.csv

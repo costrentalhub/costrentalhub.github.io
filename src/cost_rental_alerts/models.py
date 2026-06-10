@@ -9,7 +9,7 @@ class Listing:
     title: str
     location: str
     url: str
-    status: str  # open | closed | unknown
+    status: str  # open | closed | opening soon
     category: str = "rent"
     price_from: Optional[float] = None
     bedrooms: Optional[str] = None

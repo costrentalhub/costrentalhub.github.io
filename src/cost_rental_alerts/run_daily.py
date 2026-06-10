@@ -5,18 +5,27 @@ import sys
 import traceback
 from dataclasses import dataclass, field
 
-from db import connect, get_meta, init_db, mark_notified, set_meta, upsert_listings
-from diff import find_news
-from models import Listing
-from notify import (
+from cost_rental_alerts.db import connect, get_meta, init_db, mark_notified, set_meta, upsert_listings
+from cost_rental_alerts.diff import find_news
+from cost_rental_alerts.export_csv import resolve_export_status
+from cost_rental_alerts.models import Listing
+from cost_rental_alerts.notify import (
     email_configured,
     format_message,
     format_test_message,
     send_email,
     send_whatsapp,
 )
-from schemes import enrich_cross_source_open_dates
-from scrapers import scrape_affordablehomes, scrape_lda, scrape_tuath
+from cost_rental_alerts.schemes import enrich_cross_source_open_dates
+from cost_rental_alerts.scrapers import scrape_affordablehomes, scrape_lda, scrape_tuath
+
+
+def normalize_listing_statuses(listings: list[Listing]) -> None:
+    for listing in listings:
+        listing.status = resolve_export_status(
+            listing.status,
+            listing.applications_open_at,
+        )
 
 
 @dataclass
@@ -94,6 +103,7 @@ def main() -> int:
 
     listings, source_results = scrape_sources()
     enrich_cross_source_open_dates(listings)
+    normalize_listing_statuses(listings)
     upsert_listings(conn, listings)
 
     if args.scrape_only:

@@ -4,7 +4,7 @@ import html
 import re
 from urllib.parse import unquote
 
-from locations import normalize_location
+from cost_rental_alerts.locations import normalize_location
 
 _ROAD_RE = re.compile(
     r"\b(Road|Rd|Street|St|Avenue|Ave|Lane|Drive|Dr|Way|Court|Close|Parade|Highway)\b",

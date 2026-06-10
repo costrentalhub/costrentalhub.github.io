@@ -5,10 +5,10 @@ from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 
-from addresses import compose_address
-from locations import normalize_location
-from models import Listing
-from scrapers.common import (
+from cost_rental_alerts.addresses import compose_address
+from cost_rental_alerts.locations import normalize_location
+from cost_rental_alerts.models import Listing
+from cost_rental_alerts.scrapers.common import (
     bedrooms_range,
     fetch,
     normalize_status,

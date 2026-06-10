@@ -5,9 +5,9 @@ from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
-from addresses import compose_address
-from models import Listing
-from scrapers.common import (
+from cost_rental_alerts.addresses import compose_address
+from cost_rental_alerts.models import Listing
+from cost_rental_alerts.scrapers.common import (
     fetch,
     normalize_status,
     parse_bed_count,

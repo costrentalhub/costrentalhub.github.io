@@ -4,11 +4,12 @@ from pathlib import Path
 from typing import Iterable, Optional
 from zoneinfo import ZoneInfo
 
-from models import Listing
-from schemes import compute_scheme_key
+from cost_rental_alerts.models import Listing
+from cost_rental_alerts.paths import DATA_DIR
+from cost_rental_alerts.schemes import compute_scheme_key
 
 TZ = ZoneInfo("Europe/Dublin")
-DB_PATH = Path(__file__).parent / "listings.db"
+DB_PATH = DATA_DIR / "listings.db"
 
 
 def now_iso() -> str:
@@ -173,10 +174,16 @@ def upsert_listings(conn: sqlite3.Connection, listings: Iterable[Listing]) -> No
                 quantity = ?,
                 income_min = ?,
                 income_max = ?,
-                applications_open_at = COALESCE(?, applications_open_at),
+                applications_open_at = CASE
+                    WHEN ? IS NOT NULL THEN ?
+                    WHEN ? != 'open' THEN NULL
+                    ELSE applications_open_at
+                END,
                 applications_close_at = CASE
                     WHEN ? = 'lda' THEN ?
-                    ELSE COALESCE(?, applications_close_at)
+                    WHEN ? IS NOT NULL THEN ?
+                    WHEN ? != 'open' THEN NULL
+                    ELSE applications_close_at
                 END,
                 listed_at = COALESCE(?, listed_at),
                 address = COALESCE(?, address),
@@ -198,9 +205,13 @@ def upsert_listings(conn: sqlite3.Connection, listings: Iterable[Listing]) -> No
                 listing.income_min,
                 listing.income_max,
                 listing.applications_open_at,
+                listing.applications_open_at,
+                listing.status,
                 listing.source,
                 listing.applications_close_at,
                 listing.applications_close_at,
+                listing.applications_close_at,
+                listing.status,
                 listing.listed_at,
                 listing.address,
                 ts,

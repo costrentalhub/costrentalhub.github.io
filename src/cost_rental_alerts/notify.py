@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-from diff import NewsItem
+from cost_rental_alerts.diff import NewsItem
 
 TZ = ZoneInfo("Europe/Dublin")
 
@@ -104,6 +104,30 @@ def _pick_better_item(current: NewsItem, candidate: NewsItem) -> NewsItem:
     return current
 
 
+def _sort_by_close_date(items: List[NewsItem]) -> List[NewsItem]:
+    """Soonest closing first; listings without a close date last."""
+
+    def key(item: NewsItem) -> tuple[int, date]:
+        close_date = _parse_date(item.applications_close_at)
+        if close_date is None:
+            return (1, date.max)
+        return (0, close_date)
+
+    return sorted(items, key=key)
+
+
+def _sort_by_open_date(items: List[NewsItem]) -> List[NewsItem]:
+    """Soonest opening first; listings without an open date last."""
+
+    def key(item: NewsItem) -> tuple[int, date]:
+        open_date = _parse_date(item.applications_open_at)
+        if open_date is None:
+            return (1, date.max)
+        return (0, open_date)
+
+    return sorted(items, key=key)
+
+
 def _dedupe_news(items: List[NewsItem]) -> List[NewsItem]:
     """Merge only the same scheme phase (name + open date), not different phases."""
     best: dict[str, NewsItem] = {}
@@ -127,8 +151,10 @@ def format_message(news: List[NewsItem], total_scraped: int) -> str:
         return "\n".join(lines)
 
     news = _dedupe_news(news)
-    opened = [n for n in news if n.notification_type in ("new_open", "opened_today")]
-    soon = [n for n in news if n.notification_type == "opening_soon"]
+    opened = _sort_by_close_date(
+        [n for n in news if n.notification_type in ("new_open", "opened_today")]
+    )
+    soon = _sort_by_open_date([n for n in news if n.notification_type == "opening_soon"])
 
     if opened:
         lines.append(f"📢 APPLICATIONS OPEN ({len(opened)}):")
