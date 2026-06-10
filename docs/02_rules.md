@@ -43,9 +43,9 @@ Bootstrap: first WhatsApp/email send is a short setup message; no flood of all o
 
 Every non-bootstrap message includes:
 
-- `NEW APPLICATIONS`: opened today or changed to open today; `none` when empty
-- `CLOSING SOON`: currently open listings with `applications_close_at` within 14 days
-- `OPENING SOON`: non-open listings with `applications_open_at` within 14 days, including already-notified listings
+- `NEW APPLICATIONS`: opened today or changed to open today; `NO NEW APPLICATIONS` when empty
+- `CLOSING SOON`: currently open listings with `applications_close_at` within 14 days, repeated daily while in the window
+- `OPENING SOON`: non-open listings with `applications_open_at` within 14 days, repeated daily while in the window even when already notified
 
 ## Message formatting (`notify.py`)
 

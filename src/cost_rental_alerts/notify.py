@@ -205,7 +205,7 @@ def format_message(
             sort_by="close",
         )
     else:
-        lines.append("🆕 NEW APPLICATIONS: none")
+        lines.append("🆕 NO NEW APPLICATIONS")
         lines.append("")
 
     if closing:

@@ -42,7 +42,7 @@ class NotifyMessageTests(unittest.TestCase):
         message = notify.format_message([], total_scraped=176)
 
         self.assertNotIn("No updates today", message)
-        self.assertIn("🆕 NEW APPLICATIONS: none", message)
+        self.assertIn("🆕 NO NEW APPLICATIONS", message)
         self.assertIn("⏳ CLOSING SOON: none", message)
         self.assertIn("📅 OPENING SOON: none", message)
 
@@ -73,7 +73,7 @@ class NotifyMessageTests(unittest.TestCase):
             opening_soon=opening,
         )
 
-        self.assertIn("🆕 NEW APPLICATIONS: none", message)
+        self.assertIn("🆕 NO NEW APPLICATIONS", message)
         self.assertIn("⏳ CLOSING SOON (1):", message)
         self.assertIn("Closing Scheme", message)
         self.assertIn("Closes in 2 days", message)

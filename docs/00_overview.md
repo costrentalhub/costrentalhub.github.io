@@ -32,7 +32,7 @@ Daily **cost rental** alerts for Ireland. The system scrapes three sources, stor
 
 - **First run with send:** bootstrap message — database created, updates only from tomorrow
 - **Following days:** daily digest — new applications, closing soon, and opening soon
-- **No new applications:** message says `NEW APPLICATIONS: none` and still includes closing/opening soon sections
+- **No new applications:** message says `NO NEW APPLICATIONS` and still repeats any closing/opening soon sections
 - **Sorting:** New Applications and Closing Soon → closes soonest first; Opening Soon → opens soonest first
 
 ## Links
