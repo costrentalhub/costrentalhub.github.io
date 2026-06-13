@@ -15,7 +15,7 @@ class NewsItem:
     url: str
     status: str
     price_from: float | None
-    notification_type: str  # new_open | opened_today | opening_soon
+    notification_type: str  # new_open | opened_today | opening_soon | closing_soon
     bedrooms: str | None = None
     applications_close_at: str | None = None
     applications_open_at: str | None = None
@@ -44,6 +44,23 @@ def _is_today(ts: str | None) -> bool:
         return False
 
 
+def _news_item_from_row(row: sqlite3.Row, notification_type: str) -> NewsItem:
+    return NewsItem(
+        listing_id=row["id"],
+        title=row["title"],
+        location=row["location"] or "",
+        url=row["url"],
+        status=row["status"],
+        price_from=row["price_from"],
+        bedrooms=row["bedrooms"],
+        notification_type=notification_type,
+        applications_close_at=row["applications_close_at"],
+        applications_open_at=row["applications_open_at"],
+        source=row["source"],
+        scheme_key=row["scheme_key"] or row["id"],
+    )
+
+
 def find_news(conn: sqlite3.Connection, opening_soon_days: int = 14) -> List[NewsItem]:
     today = date.fromisoformat(today_iso())
     soon_end = today + timedelta(days=opening_soon_days)
@@ -68,19 +85,9 @@ def find_news(conn: sqlite3.Connection, opening_soon_days: int = 14) -> List[New
             if key not in seen_keys:
                 seen_keys.add(key)
                 items.append(
-                    NewsItem(
-                        listing_id=row["id"],
-                        title=row["title"],
-                        location=row["location"] or "",
-                        url=row["url"],
-                        status=row["status"],
-                        price_from=row["price_from"],
-                        bedrooms=row["bedrooms"],
-                        notification_type="opened_today" if status_changed_today and not first_seen_today else "new_open",
-                        applications_close_at=row["applications_close_at"],
-                        applications_open_at=row["applications_open_at"],
-                        source=row["source"],
-                        scheme_key=row["scheme_key"] or row["id"],
+                    _news_item_from_row(
+                        row,
+                        "opened_today" if status_changed_today and not first_seen_today else "new_open",
                     )
                 )
 
@@ -94,21 +101,53 @@ def find_news(conn: sqlite3.Connection, opening_soon_days: int = 14) -> List[New
             key = (row["id"], "opening_soon")
             if key not in seen_keys:
                 seen_keys.add(key)
-                items.append(
-                    NewsItem(
-                        listing_id=row["id"],
-                        title=row["title"],
-                        location=row["location"] or "",
-                        url=row["url"],
-                        status=row["status"],
-                        price_from=row["price_from"],
-                        bedrooms=row["bedrooms"],
-                        notification_type="opening_soon",
-                        applications_close_at=row["applications_close_at"],
-                        applications_open_at=row["applications_open_at"],
-                        source=row["source"],
-                        scheme_key=row["scheme_key"] or row["id"],
-                    )
-                )
+                items.append(_news_item_from_row(row, "opening_soon"))
+
+    return items
+
+
+def find_closing_soon(conn: sqlite3.Connection, closing_soon_days: int = 14) -> List[NewsItem]:
+    today = date.fromisoformat(today_iso())
+    soon_end = today + timedelta(days=closing_soon_days)
+    items: List[NewsItem] = []
+
+    rows = conn.execute(
+        """
+        SELECT * FROM listings
+        WHERE category = 'rent'
+          AND status = 'open'
+          AND applications_close_at IS NOT NULL
+        ORDER BY applications_close_at, title
+        """
+    ).fetchall()
+
+    for row in rows:
+        close_at = _parse_date(row["applications_close_at"])
+        if close_at and today <= close_at <= soon_end:
+            items.append(_news_item_from_row(row, "closing_soon"))
+
+    return items
+
+
+def find_opening_soon(conn: sqlite3.Connection, opening_soon_days: int = 14) -> List[NewsItem]:
+    """Daily digest of upcoming openings, including already-notified listings."""
+    today = date.fromisoformat(today_iso())
+    soon_end = today + timedelta(days=opening_soon_days)
+    items: List[NewsItem] = []
+
+    rows = conn.execute(
+        """
+        SELECT * FROM listings
+        WHERE category = 'rent'
+          AND status != 'open'
+          AND applications_open_at IS NOT NULL
+        ORDER BY applications_open_at, title
+        """
+    ).fetchall()
+
+    for row in rows:
+        open_at = _parse_date(row["applications_open_at"])
+        if open_at and today < open_at <= soon_end:
+            items.append(_news_item_from_row(row, "opening_soon"))
 
     return items

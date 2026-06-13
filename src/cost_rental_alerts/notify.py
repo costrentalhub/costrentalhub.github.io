@@ -141,54 +141,94 @@ def _dedupe_news(items: List[NewsItem]) -> List[NewsItem]:
     return list(best.values())
 
 
-def format_message(news: List[NewsItem], total_scraped: int) -> str:
+def _append_listing_section(
+    lines: List[str],
+    heading: str,
+    items: List[NewsItem],
+    *,
+    sort_by: str,
+) -> None:
+    if sort_by == "close":
+        sorted_items = _sort_by_close_date(items)
+    elif sort_by == "open":
+        sorted_items = _sort_by_open_date(items)
+    else:
+        sorted_items = items
+
+    lines.append(f"{heading} ({len(sorted_items)}):")
+    lines.append("")
+    for i, item in enumerate(sorted_items, 1):
+        if sort_by == "open":
+            open_date = _format_open_date_short(item.applications_open_at)
+            extra = f"Opens: {open_date}" if open_date else None
+        else:
+            extra = _closes_line(item.applications_close_at)
+
+        lines.extend(
+            _format_listing_block(
+                i,
+                item.title,
+                item.location,
+                item.url,
+                item.bedrooms,
+                item.price_from,
+                extra_line=extra,
+            )
+        )
+
+
+def format_message(
+    news: List[NewsItem],
+    total_scraped: int,
+    *,
+    closing_soon: List[NewsItem] | None = None,
+    opening_soon: List[NewsItem] | None = None,
+) -> str:
     today = datetime.now(TZ).strftime("%d/%m/%Y")
     lines = [f"🏠 Cost Rental Alert — {today}", ""]
 
-    if not news:
-        lines.append("✅ No updates today.")
-        lines.append(f"({total_scraped} schemes monitored)")
-        return "\n".join(lines)
-
     news = _dedupe_news(news)
-    opened = _sort_by_close_date(
-        [n for n in news if n.notification_type in ("new_open", "opened_today")]
+    opened = [n for n in news if n.notification_type in ("new_open", "opened_today")]
+    soon_source = (
+        opening_soon
+        if opening_soon is not None
+        else [n for n in news if n.notification_type == "opening_soon"]
     )
-    soon = _sort_by_open_date([n for n in news if n.notification_type == "opening_soon"])
+    soon = _dedupe_news(soon_source)
+    closing = _dedupe_news(closing_soon or [])
 
     if opened:
-        lines.append(f"📢 APPLICATIONS OPEN ({len(opened)}):")
+        _append_listing_section(
+            lines,
+            "📢 NEW APPLICATIONS",
+            opened,
+            sort_by="close",
+        )
+    else:
+        lines.append("🆕 NO NEW APPLICATIONS")
         lines.append("")
-        for i, item in enumerate(opened, 1):
-            lines.extend(
-                _format_listing_block(
-                    i,
-                    item.title,
-                    item.location,
-                    item.url,
-                    item.bedrooms,
-                    item.price_from,
-                    extra_line=_closes_line(item.applications_close_at),
-                )
-            )
+
+    if closing:
+        _append_listing_section(
+            lines,
+            "⏳ CLOSING SOON",
+            closing,
+            sort_by="close",
+        )
+    else:
+        lines.append("⏳ CLOSING SOON: none")
+        lines.append("")
 
     if soon:
-        lines.append(f"📅 OPENING SOON ({len(soon)}):")
+        _append_listing_section(
+            lines,
+            "📅 OPENING SOON",
+            soon,
+            sort_by="open",
+        )
+    else:
+        lines.append("📅 OPENING SOON: none")
         lines.append("")
-        for i, item in enumerate(soon, 1):
-            open_date = _format_open_date_short(item.applications_open_at)
-            extra = f"Opens: {open_date}" if open_date else None
-            lines.extend(
-                _format_listing_block(
-                    i,
-                    item.title,
-                    item.location,
-                    item.url,
-                    item.bedrooms,
-                    item.price_from,
-                    extra_line=extra,
-                )
-            )
 
     lines.append(f"({total_scraped} schemes monitored)")
     return "\n".join(lines).strip()
