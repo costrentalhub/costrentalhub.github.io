@@ -110,6 +110,39 @@ class NotifyMessageTests(unittest.TestCase):
         self.assertEqual(message.count("Lancaster Gate"), 1)
         self.assertIn("Folkstown Park", message)
 
+    def test_short_whatsapp_message_is_not_split(self):
+        message = "🏠 Cost Rental Alert — 27/06/2026\n\n🆕 NO NEW APPLICATIONS"
+
+        chunks = notify._split_whatsapp_message(message, max_chars=500)
+
+        self.assertEqual(chunks, [message])
+
+    def test_long_whatsapp_message_is_split_into_numbered_parts(self):
+        blocks = ["🏠 Cost Rental Alert — 27/06/2026"]
+        for index in range(1, 7):
+            blocks.append(
+                "\n".join(
+                    [
+                        f"{index}. Scheme {index} — Dublin, Co. Dublin",
+                        "   🛏️ 2 bed | 💰 from €1,200/mo",
+                        f"   Closes in {index} days",
+                        f"   https://example.com/scheme-{index}",
+                    ]
+                )
+            )
+        message = "\n\n".join(blocks)
+
+        chunks = notify._split_whatsapp_message(message, max_chars=360)
+
+        self.assertGreater(len(chunks), 1)
+        self.assertTrue(all(len(chunk) <= 360 for chunk in chunks))
+        self.assertTrue(chunks[0].startswith("🏠 Cost Rental Alert — 27/06/2026 (1/"))
+        self.assertTrue(chunks[-1].startswith(f"🏠 Cost Rental Alert — 27/06/2026 ({len(chunks)}/{len(chunks)})"))
+        self.assertEqual(
+            sum(chunk.count("https://example.com/scheme-") for chunk in chunks),
+            6,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

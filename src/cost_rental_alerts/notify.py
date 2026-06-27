@@ -1,6 +1,7 @@
 import os
 import smtplib
 import ssl
+import time
 import urllib.parse
 from datetime import date, datetime
 from email.message import EmailMessage
@@ -12,6 +13,7 @@ import requests
 from cost_rental_alerts.diff import NewsItem
 
 TZ = ZoneInfo("Europe/Dublin")
+WHATSAPP_CHUNK_CHARS = int(os.environ.get("WHATSAPP_CHUNK_CHARS", "650"))
 
 
 def _today() -> date:
@@ -355,23 +357,100 @@ def send_email(message: str, dry_run: bool = False) -> bool:
     return True
 
 
+def _split_long_text(text: str, max_chars: int) -> List[str]:
+    chunks: List[str] = []
+    remaining = text
+    while len(remaining) > max_chars:
+        split_at = remaining.rfind("\n", 0, max_chars + 1)
+        if split_at <= 0:
+            split_at = remaining.rfind(" ", 0, max_chars + 1)
+        if split_at <= 0:
+            split_at = max_chars
+        chunks.append(remaining[:split_at].strip())
+        remaining = remaining[split_at:].strip()
+    if remaining:
+        chunks.append(remaining)
+    return chunks
+
+
+def _split_blocks(blocks: List[str], max_chars: int) -> List[str]:
+    chunks: List[str] = []
+    current = ""
+
+    for block in [block.strip() for block in blocks if block.strip()]:
+        if len(block) > max_chars:
+            if current:
+                chunks.append(current)
+                current = ""
+            chunks.extend(_split_long_text(block, max_chars))
+            continue
+
+        candidate = block if not current else f"{current}\n\n{block}"
+        if len(candidate) <= max_chars:
+            current = candidate
+        else:
+            if current:
+                chunks.append(current)
+            current = block
+
+    if current:
+        chunks.append(current)
+    return chunks
+
+
+def _split_whatsapp_message(
+    message: str,
+    max_chars: int = WHATSAPP_CHUNK_CHARS,
+) -> List[str]:
+    """Split long CallMeBot messages into block-preserving WhatsApp parts."""
+    if len(message) <= max_chars:
+        return [message]
+
+    header, separator, body = message.partition("\n\n")
+    if not separator:
+        return _split_long_text(message, max_chars)
+
+    # Reserve room for the repeated header and "(1/2)" marker in each part.
+    body_limit = max(200, max_chars - len(header) - 16)
+    body_chunks = _split_blocks(body.split("\n\n"), body_limit)
+    total = len(body_chunks)
+    if total <= 1:
+        return [message]
+
+    return [
+        f"{header} ({index}/{total})\n\n{chunk}"
+        for index, chunk in enumerate(body_chunks, 1)
+    ]
+
+
 def send_whatsapp(message: str, dry_run: bool = False) -> bool:
     phone = os.environ.get("CALLMEBOT_PHONE", "").strip()
     apikey = os.environ.get("CALLMEBOT_APIKEY", "").strip()
+    chunks = _split_whatsapp_message(message)
 
     if dry_run or not phone or not apikey:
         print("--- WhatsApp message (dry-run / missing credentials) ---")
-        print(message)
+        for index, chunk in enumerate(chunks, 1):
+            if len(chunks) > 1:
+                print(f"--- part {index}/{len(chunks)} ---")
+            print(chunk)
         print("--- end ---")
         return False
 
-    url = (
-        "https://api.callmebot.com/whatsapp.php?"
-        f"phone={urllib.parse.quote(phone)}"
-        f"&text={urllib.parse.quote(message)}"
-        f"&apikey={urllib.parse.quote(apikey)}"
-    )
-    response = requests.get(url, timeout=30)
-    response.raise_for_status()
-    print("WhatsApp message sent.")
+    for index, chunk in enumerate(chunks, 1):
+        url = (
+            "https://api.callmebot.com/whatsapp.php?"
+            f"phone={urllib.parse.quote(phone)}"
+            f"&text={urllib.parse.quote(chunk)}"
+            f"&apikey={urllib.parse.quote(apikey)}"
+        )
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        if index < len(chunks):
+            time.sleep(1)
+
+    if len(chunks) == 1:
+        print("WhatsApp message sent.")
+    else:
+        print(f"WhatsApp message sent in {len(chunks)} parts.")
     return True
