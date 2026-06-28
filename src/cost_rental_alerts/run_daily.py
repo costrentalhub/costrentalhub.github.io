@@ -12,12 +12,17 @@ from cost_rental_alerts.models import Listing
 from cost_rental_alerts.notify import (
     email_configured,
     format_message,
+    format_scrape_failure_alert,
     format_test_message,
     format_whatsapp_message,
     send_email,
+    send_ops_alert,
     send_whatsapp,
 )
-from cost_rental_alerts.schemes import enrich_cross_source_open_dates
+from cost_rental_alerts.schemes import (
+    apply_affordablehomes_closed_overrides,
+    enrich_cross_source_open_dates,
+)
 from cost_rental_alerts.scrapers import scrape_affordablehomes, scrape_lda, scrape_tuath
 
 
@@ -26,6 +31,7 @@ def normalize_listing_statuses(listings: list[Listing]) -> None:
         listing.status = resolve_export_status(
             listing.status,
             listing.applications_open_at,
+            listing.applications_close_at,
         )
 
 
@@ -104,8 +110,13 @@ def main() -> int:
 
     listings, source_results = scrape_sources()
     enrich_cross_source_open_dates(listings)
+    apply_affordablehomes_closed_overrides(listings)
     normalize_listing_statuses(listings)
     upsert_listings(conn, listings)
+
+    failed_sources = [result for result in source_results if not result.ok]
+    if failed_sources and not args.dry_run:
+        send_ops_alert(format_scrape_failure_alert(failed_sources))
 
     if args.scrape_only:
         print(f"Scrape complete. {len(listings)} listings upserted.")

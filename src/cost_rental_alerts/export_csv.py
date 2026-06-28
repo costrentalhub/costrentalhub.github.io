@@ -69,16 +69,27 @@ def fmt_beds(bedrooms: str | None) -> str:
 def resolve_export_status(
     status: str | None,
     applications_open_at: str | None,
+    applications_close_at: str | None = None,
     *,
     today: date | None = None,
 ) -> str:
     """Map stored scraper status to CSV values: open, closed, opening soon."""
+    ref = today or datetime.now(TZ).date()
+
+    if applications_close_at:
+        try:
+            close_at = date.fromisoformat(applications_close_at[:10])
+        except ValueError:
+            close_at = None
+        else:
+            if close_at < ref:
+                return "closed"
+
     if status == "open":
         return "open"
     if status in ("opening soon", "coming_soon", "opening_soon"):
         return "opening soon"
 
-    ref = today or datetime.now(TZ).date()
     if applications_open_at:
         try:
             open_at = date.fromisoformat(applications_open_at[:10])
@@ -120,7 +131,7 @@ def _write_rows(path: Path, rows) -> int:
                     fmt_price(price),
                     quantity if quantity is not None else "",
                     fmt_beds(bedrooms),
-                    resolve_export_status(status, open_),
+                    resolve_export_status(status, open_, close),
                     fmt_price(income_min),
                     fmt_price(income_max),
                     fmt_date(listed),

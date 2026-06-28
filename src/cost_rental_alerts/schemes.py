@@ -79,6 +79,28 @@ def merge_listings_ah_first(listings: list[Listing]) -> list[Listing]:
     return merged
 
 
+def apply_affordablehomes_closed_overrides(listings: list[Listing]) -> None:
+    """When AH marks a scheme phase closed, override stale open LDA/Tuath rows."""
+    ah_by_name: dict[str, list[Listing]] = defaultdict(list)
+    for listing in listings:
+        if listing.source == "affordablehomes":
+            ah_by_name[normalize_scheme_name(listing.title)].append(listing)
+
+    for listing in listings:
+        if listing.source == "affordablehomes" or listing.status != "open":
+            continue
+        for ah in ah_by_name.get(normalize_scheme_name(listing.title), []):
+            if ah.status != "closed":
+                continue
+            if ah.applications_open_at and listing.applications_open_at:
+                if ah.applications_open_at[:10] != listing.applications_open_at[:10]:
+                    continue
+            listing.status = "closed"
+            if ah.applications_close_at and not listing.applications_close_at:
+                listing.applications_close_at = ah.applications_close_at
+            break
+
+
 def enrich_cross_source_open_dates(listings: list[Listing]) -> None:
     """Copy applications_open_at from affordablehomes when another source lacks it."""
     open_dates_by_name: dict[str, list[str]] = defaultdict(list)

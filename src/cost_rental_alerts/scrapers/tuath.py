@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import date, datetime
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
@@ -17,6 +17,7 @@ from cost_rental_alerts.scrapers.common import (
 )
 
 TUATH_URL = "https://tuathhousing.ie/cost-rental/"
+TUATH_HEADERS = {"Referer": "https://tuathhousing.ie/"}
 TZ = ZoneInfo("Europe/Dublin")
 
 _MONTH = (
@@ -50,17 +51,21 @@ def _header_indexes(headers: list[str]) -> dict[str, int | None]:
 def _resolve_year(day: int, month: int, *, prefer_future: bool) -> int:
     today = datetime.now(TZ).date()
     year = today.year
-    candidate = datetime(year, month, day).date()
+    candidate = date(year, month, day)
     if prefer_future and candidate < today:
         return year + 1
     return year
 
 
-def _parse_close_at(html: str, *, prefer_future: bool = True) -> str | None:
+def _detail_applications_closed(html: str) -> bool:
+    return bool(re.search(r"applications are now closed", html, re.I))
+
+
+def _parse_close_at(html: str) -> str | None:
     """
     Parse 'Application closing date is Thursday, 11 June at 2PM.' from detail HTML.
 
-    Year is omitted on Tuath pages — infer from listing status and today's date.
+    Closing dates omit the year — use the current year, not a forced future year.
     """
     header = re.search(
         r"application closing date is\s*(.{0,120})",
@@ -94,9 +99,22 @@ def _parse_close_at(html: str, *, prefer_future: bool = True) -> str | None:
         if year_int < 2020 or year_int > datetime.now(TZ).year + 2:
             return None
     else:
-        year_int = _resolve_year(day_int, month, prefer_future=prefer_future)
+        year_int = _resolve_year(day_int, month, prefer_future=False)
 
     return f"{year_int}-{month:02d}-{day_int:02d}"
+
+
+def _apply_closed_inference(listing: Listing, detail_html: str, close_at: str | None) -> None:
+    if _detail_applications_closed(detail_html):
+        listing.status = "closed"
+        return
+    if not close_at:
+        return
+    try:
+        if date.fromisoformat(close_at[:10]) < datetime.now(TZ).date():
+            listing.status = "closed"
+    except ValueError:
+        return
 
 
 def _parse_unit_table(html: str) -> tuple[str | None, float | None, int | None]:
@@ -148,12 +166,9 @@ def _parse_unit_table(html: str) -> tuple[str | None, float | None, int | None]:
 def _enrich_listings(listings: list[Listing]) -> None:
     for listing in listings:
         try:
-            detail_html = fetch(listing.url)
+            detail_html = fetch(listing.url, extra_headers=TUATH_HEADERS)
             bedrooms, price_from, quantity = _parse_unit_table(detail_html)
-            close_at = _parse_close_at(
-                detail_html,
-                prefer_future=listing.status == "open",
-            )
+            close_at = _parse_close_at(detail_html)
             listing.bedrooms = bedrooms
             listing.price_from = price_from
             listing.quantity = quantity
@@ -164,12 +179,13 @@ def _enrich_listings(listings: list[Listing]) -> None:
             )
             if close_at:
                 listing.applications_close_at = close_at
+            _apply_closed_inference(listing, detail_html, close_at)
         except Exception:
             continue
 
 
 def scrape_tuath() -> list[Listing]:
-    html = fetch(TUATH_URL)
+    html = fetch(TUATH_URL, extra_headers=TUATH_HEADERS)
     soup = BeautifulSoup(html, "html.parser")
     listings: list[Listing] = []
     seen = set()

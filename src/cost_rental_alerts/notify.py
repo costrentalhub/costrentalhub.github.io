@@ -15,6 +15,7 @@ from cost_rental_alerts.locations import format_city_neighborhood
 
 TZ = ZoneInfo("Europe/Dublin")
 WHATSAPP_CHUNK_CHARS = int(os.environ.get("WHATSAPP_CHUNK_CHARS", "650"))
+REPORT_ISSUE_EMAIL_DEFAULT = "costrentalhub@gmail.com"
 DEFAULT_SCHEME_HUB_URL = "https://mateussibila.github.io/cost-rental-alerts/"
 
 
@@ -317,12 +318,95 @@ def format_test_message(
     return "\n".join(lines).strip()
 
 
+def smtp_user() -> str:
+    return os.environ.get("SMTP_USER", "").strip() or REPORT_ISSUE_EMAIL_DEFAULT
+
+
+def daily_alert_email() -> str:
+    """Recipient for daily Cost Rental Alert digests."""
+    return os.environ.get("EMAIL_TO", "").strip() or report_issue_email()
+
+
 def email_configured() -> bool:
     return bool(
-        os.environ.get("SMTP_USER", "").strip()
+        smtp_user()
         and os.environ.get("SMTP_PASSWORD", "").strip()
-        and os.environ.get("EMAIL_TO", "").strip()
+        and daily_alert_email()
     )
+
+
+def report_issue_email() -> str:
+    return (
+        os.environ.get("REPORT_ISSUE_EMAIL", "").strip()
+        or REPORT_ISSUE_EMAIL_DEFAULT
+    )
+
+
+def ops_alert_email() -> str:
+    return report_issue_email()
+
+
+def format_scrape_failure_alert(source_results) -> str:
+    today = datetime.now(TZ).strftime("%d/%m/%Y")
+    lines = [f"⚠️ Cost Rental ops — scrape failures — {today}", ""]
+    for result in source_results:
+        lines.append(f"❌ {result.label}")
+        if result.error:
+            lines.append(f"   {result.error}")
+        lines.append("")
+    lines.append("Stale data from failed sources may remain in the hub until the next successful scrape.")
+    return "\n".join(lines).strip()
+
+
+def format_broken_links_alert(failures) -> str:
+    today = datetime.now(TZ).strftime("%d/%m/%Y")
+    lines = [
+        f"⚠️ Cost Rental ops — broken scheme links — {today}",
+        "",
+        f"Active schemes with HTTP errors ({len(failures)}):",
+        "",
+    ]
+    for item in failures:
+        status_label = str(item.status) if item.status else "error"
+        lines.append(f"- [{status_label}] {item.name} ({item.source})")
+        lines.append(f"  {item.url}")
+        if item.detail:
+            lines.append(f"  {item.detail}")
+        lines.append("")
+    return "\n".join(lines).strip()
+
+
+def send_ops_alert(message: str, *, dry_run: bool = False) -> bool:
+    to_addr = ops_alert_email()
+    user = smtp_user()
+    password = os.environ.get("SMTP_PASSWORD", "").strip()
+    from_addr = os.environ.get("EMAIL_FROM", "").strip() or user
+    host = os.environ.get("SMTP_HOST", "smtp.gmail.com").strip()
+    port = int(os.environ.get("SMTP_PORT", "587"))
+    subject = message.split("\n", 1)[0].strip()
+
+    if dry_run or not user or not password or not to_addr:
+        print("--- Ops alert (dry-run / missing credentials) ---")
+        print(f"To: {to_addr or '(not set)'}")
+        print(f"Subject: {subject}")
+        print(message)
+        print("--- end ---")
+        return False
+
+    mail = EmailMessage()
+    mail["Subject"] = subject
+    mail["From"] = from_addr
+    mail["To"] = to_addr
+    mail.set_content(message)
+
+    context = ssl.create_default_context()
+    with smtplib.SMTP(host, port, timeout=30) as smtp:
+        smtp.starttls(context=context)
+        smtp.login(user, password)
+        smtp.send_message(mail)
+
+    print(f"Ops alert sent to {to_addr}.")
+    return True
 
 
 def email_subject(message: str) -> str:
@@ -334,9 +418,9 @@ def email_subject(message: str) -> str:
 
 
 def send_email(message: str, dry_run: bool = False) -> bool:
-    user = os.environ.get("SMTP_USER", "").strip()
+    user = smtp_user()
     password = os.environ.get("SMTP_PASSWORD", "").strip()
-    to_addr = os.environ.get("EMAIL_TO", "").strip()
+    to_addr = daily_alert_email()
     from_addr = os.environ.get("EMAIL_FROM", "").strip() or user
     host = os.environ.get("SMTP_HOST", "smtp.gmail.com").strip()
     port = int(os.environ.get("SMTP_PORT", "587"))

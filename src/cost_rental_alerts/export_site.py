@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import csv
+import os
 import re
+import urllib.parse
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -12,9 +14,12 @@ from html import escape
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from cost_rental_alerts.notify import report_issue_email
 from cost_rental_alerts.paths import DATA_DIR, REPO_ROOT
 
 TZ = ZoneInfo("Europe/Dublin")
+SOURCE_LINK_PRIORITY = {"affordablehomes": 0, "lda": 1, "tuath": 2}
+DEFAULT_REPORT_ISSUE_REPO = "mateussibila/cost-rental-alerts"
 
 CSV_PATH = DATA_DIR / "listings-export.csv"
 SITE_DIR = REPO_ROOT / "site"
@@ -163,6 +168,64 @@ def opening_soon_schemes(schemes: Iterable[Scheme]) -> list[Scheme]:
     )
 
 
+def enrich_scheme_sources(schemes: list[Scheme], rows: Iterable[dict[str, str]]) -> None:
+    """Attach alternate source links from any CSV row with the same scheme name."""
+    by_name: dict[str, list[SourceLink]] = {}
+    for row in rows:
+        name = normalize_key(row.get("name"))
+        source = row.get("source", "").strip()
+        link = row.get("link", "").strip()
+        if not name or not source or not link:
+            continue
+        bucket = by_name.setdefault(name, [])
+        if not any(item.source == source and item.link == link for item in bucket):
+            bucket.append(SourceLink(source=source, link=link))
+
+    for scheme in schemes:
+        extras = by_name.get(normalize_key(scheme.name), [])
+        seen = {(item.source, item.link) for item in scheme.sources}
+        for link in sorted(
+            extras,
+            key=lambda item: SOURCE_LINK_PRIORITY.get(normalize_key(item.source), 9),
+        ):
+            key = (link.source, link.link)
+            if key not in seen:
+                scheme.sources.append(link)
+                seen.add(key)
+
+
+def sort_source_links(sources: Iterable[SourceLink]) -> list[SourceLink]:
+    return sorted(
+        list(sources),
+        key=lambda item: SOURCE_LINK_PRIORITY.get(normalize_key(item.source), 9),
+    )
+
+
+def report_issue_href() -> str:
+    email = report_issue_email()
+    if email:
+        subject = urllib.parse.quote("Scheme Hub — issue report")
+        body = urllib.parse.quote(
+            "Scheme name:\n"
+            "What is wrong (broken link, wrong dates, etc.):\n"
+            "Page URL:\n"
+        )
+        return f"mailto:{email}?subject={subject}&body={body}"
+
+    repo = os.environ.get("REPORT_ISSUE_REPO", DEFAULT_REPORT_ISSUE_REPO).strip()
+    params = urllib.parse.urlencode(
+        {
+            "title": "Scheme Hub issue",
+            "body": (
+                "**Scheme name:** \n"
+                "**What is wrong:** \n"
+                "**Page URL:** \n"
+            ),
+        }
+    )
+    return f"https://github.com/{repo}/issues/new?{params}"
+
+
 def fmt_count(count: int, singular: str, plural: str | None = None) -> str:
     return f"{count} {singular if count == 1 else (plural or singular + 's')}"
 
@@ -183,7 +246,7 @@ def income_range(scheme: Scheme) -> str:
 
 def render_source_links(scheme: Scheme) -> str:
     links = []
-    for source in scheme.sources:
+    for source in sort_source_links(scheme.sources):
         label = escape(source.source or "Source")
         if source.link:
             links.append(
@@ -282,6 +345,7 @@ def render_html(
     apply_now = apply_now_schemes(schemes)
     opening_soon = opening_soon_schemes(schemes)
     generated_label = generated.strftime("%d %b %Y %H:%M %Z")
+    issue_href = escape(report_issue_href(), quote=True)
 
     return f"""<!doctype html>
 <html lang="en">
@@ -289,7 +353,7 @@ def render_html(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title>Cost Rental Schemes</title>
+  <title>Scheme Hub — Cost Rental</title>
   <style>
     :root {{
       color-scheme: light;
@@ -374,6 +438,8 @@ def render_html(
       font-size: 2.7rem;
       line-height: 1;
     }}
+    .summary-card--apply strong {{ color: var(--green); }}
+    .summary-card--opening strong {{ color: var(--brand); }}
     .toolbar {{
       position: sticky;
       top: 0;
@@ -415,6 +481,11 @@ def render_html(
       text-decoration: none;
       font-weight: 700;
       font-size: 0.92rem;
+    }}
+    .quick-links a.report-link {{
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--line);
     }}
     .scheme-section {{
       margin-top: 34px;
@@ -565,7 +636,20 @@ def render_html(
     .no-results.is-visible {{ display: block; }}
     footer {{
       margin-top: 48px;
+      display: flex;
+      justify-content: flex-end;
+    }}
+    .footer-link {{
+      display: inline-flex;
+      align-items: center;
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--panel);
       color: var(--muted);
+      text-decoration: none;
+      font-weight: 700;
       font-size: 0.92rem;
     }}
     @media (max-width: 820px) {{
@@ -603,22 +687,23 @@ def render_html(
   <main class="page">
     <header class="hero">
       <div>
-        <h1>Cost rental schemes</h1>
-        <p>Private dashboard for active cost-rental opportunities in Ireland. Use the sections below to see schemes you can apply for now and schemes opening soon.</p>
+        <h1>Scheme Hub</h1>
+        <p>Cost rental schemes in Ireland — apply now and opening soon. Updated daily from affordablehomes.ie, LDA, and Tuath Housing.</p>
       </div>
       <div class="updated">Updated {escape(generated_label)}</div>
     </header>
 
     <section class="summary" aria-label="Scheme summary">
-      <div class="summary-card"><span>Apply now</span><strong>{len(apply_now)}</strong></div>
-      <div class="summary-card"><span>Opening soon</span><strong>{len(opening_soon)}</strong></div>
+      <div class="summary-card summary-card--apply"><span>🟢 Apply now</span><strong>{len(apply_now)}</strong></div>
+      <div class="summary-card summary-card--opening"><span>🔵 Opening soon</span><strong>{len(opening_soon)}</strong></div>
     </section>
 
     <nav class="toolbar" aria-label="Dashboard tools">
       <input class="search" id="scheme-search" type="search" placeholder="Search by scheme, county, source, price, beds..." autocomplete="off">
       <div class="quick-links">
-        <a href="#apply-now">Apply now</a>
-        <a href="#opening-soon">Opening soon</a>
+        <a href="#apply-now">🟢 Apply now</a>
+        <a href="#opening-soon">🔵 Opening soon</a>
+        <a class="report-link" href="{issue_href}">Report issue</a>
       </div>
     </nav>
 
@@ -626,7 +711,7 @@ def render_html(
 
     {render_section(
         "apply-now",
-        "Apply now",
+        "🟢 Apply now",
         "Open application windows. Schemes with a close date are sorted first so the earliest deadlines are easiest to spot.",
         apply_now,
         empty_message="No schemes are open for applications right now.",
@@ -634,14 +719,14 @@ def render_html(
 
     {render_section(
         "opening-soon",
-        "Opening soon",
-        "Schemes marked by the source data as opening soon.",
+        "🔵 Opening soon",
+        "Schemes opening in the next two weeks.",
         opening_soon,
-        empty_message="No schemes are marked as opening soon right now.",
+        empty_message="No schemes are opening soon right now.",
     )}
 
     <footer>
-      Data comes from <code>data/listings-export.csv</code>. Links open the original source pages in a new tab.
+      <a class="footer-link" href="{issue_href}">Report issue</a>
     </footer>
   </main>
 
@@ -682,7 +767,9 @@ def export_site(
     out_path: Path = INDEX_PATH,
     generated_at: datetime | None = None,
 ) -> Path:
-    schemes = build_schemes(load_rows(csv_path))
+    rows = load_rows(csv_path)
+    schemes = build_schemes(rows)
+    enrich_scheme_sources(schemes, rows)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(
         render_html(schemes, generated_at=generated_at),

@@ -1,9 +1,14 @@
 import unittest
+from unittest.mock import patch
 
 from cost_rental_alerts.export_site import (
     apply_now_schemes,
     build_schemes,
+    enrich_scheme_sources,
     opening_soon_schemes,
+    report_issue_href,
+    sort_source_links,
+    SourceLink,
 )
 
 
@@ -112,6 +117,60 @@ class ExportSiteTests(unittest.TestCase):
 
         self.assertEqual([scheme.name for scheme in apply_now_schemes(schemes)], ["Apply Now"])
         self.assertEqual([scheme.name for scheme in opening_soon_schemes(schemes)], ["Opening Soon"])
+
+    def test_enrich_scheme_sources_adds_alternate_links_by_name(self):
+        rows = [
+            {
+                "name": "Mountneil",
+                "location": "Waterford - Carrickperish",
+                "address": "",
+                "price": "1219",
+                "quantity": "1",
+                "beds": "3",
+                "status": "open",
+                "income_min": "",
+                "income_max": "",
+                "listed_at": "",
+                "open_on": "04/06/2026",
+                "close_on": "11/06/2026",
+                "source": "tuath",
+                "link": "https://example.test/tuath/mountneil",
+            },
+            {
+                "name": "Mountneil",
+                "location": "Wexford - Carrickperish",
+                "address": "",
+                "price": "1219",
+                "quantity": "1",
+                "beds": "3",
+                "status": "closed",
+                "income_min": "",
+                "income_max": "",
+                "listed_at": "",
+                "open_on": "04/06/2026",
+                "close_on": "11/06/2026",
+                "source": "affordablehomes",
+                "link": "https://example.test/affordablehomes/mountneil1",
+            },
+        ]
+
+        schemes = build_schemes(rows)
+        enrich_scheme_sources(schemes, rows)
+
+        self.assertEqual(len(schemes), 1)
+        self.assertEqual(
+            [(source.source, source.link) for source in sort_source_links(schemes[0].sources)],
+            [
+                ("affordablehomes", "https://example.test/affordablehomes/mountneil1"),
+                ("tuath", "https://example.test/tuath/mountneil"),
+            ],
+        )
+
+    def test_report_issue_href_uses_default_ops_email(self):
+        with patch.dict("os.environ", {}, clear=True):
+            href = report_issue_href()
+
+        self.assertIn("mailto:costrentalhub@gmail.com", href)
 
 
 if __name__ == "__main__":

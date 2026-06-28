@@ -4,15 +4,24 @@ from typing import Optional
 import requests
 
 USER_AGENT = (
-    "CostRentalAlerts/1.0 (+https://github.com; housing alerts aggregator)"
+    "Mozilla/5.0 (compatible; CostRentalAlerts/1.0; "
+    "+https://github.com/mateussibila/cost-rental-alerts)"
 )
+BROWSER_HEADERS = {
+    "User-Agent": USER_AGENT,
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-IE,en;q=0.9",
+}
 TIMEOUT = 30
 
 
-def fetch(url: str) -> str:
+def fetch(url: str, *, extra_headers: dict[str, str] | None = None) -> str:
+    headers = dict(BROWSER_HEADERS)
+    if extra_headers:
+        headers.update(extra_headers)
     response = requests.get(
         url,
-        headers={"User-Agent": USER_AGENT},
+        headers=headers,
         timeout=TIMEOUT,
     )
     response.raise_for_status()
