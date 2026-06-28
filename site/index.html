@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title>Scheme Hub — Cost Rental</title>
+  <title>Ireland Cost Rental Hub</title>
   <style>
     :root {
       color-scheme: light;
@@ -143,20 +143,79 @@
       scroll-margin-top: 100px;
     }
     .section-heading {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(260px, 420px);
-      gap: 20px;
-      align-items: end;
       margin-bottom: 16px;
     }
-    .section-heading h2 {
+    .section-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       margin: 0;
       font-size: clamp(1.65rem, 3vw, 2.45rem);
       letter-spacing: -0.03em;
     }
-    .section-heading p {
-      margin: 0;
+    .info-tip {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .info-tip__icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid var(--muted);
       color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      font-style: italic;
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: help;
+      user-select: none;
+    }
+    .info-tip:hover .info-tip__icon,
+    .info-tip:focus-visible .info-tip__icon {
+      color: var(--brand-dark);
+      border-color: var(--brand);
+    }
+    .info-tip__popup {
+      display: none;
+      position: absolute;
+      left: 50%;
+      top: calc(100% + 10px);
+      transform: translateX(-50%);
+      width: min(340px, 78vw);
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 500;
+      line-height: 1.45;
+      letter-spacing: normal;
+      text-transform: none;
+      box-shadow: var(--shadow);
+      z-index: 20;
+    }
+    .info-tip__popup::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -6px;
+      width: 10px;
+      height: 10px;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+      transform: translateX(-50%) rotate(45deg);
+    }
+    .info-tip:hover .info-tip__popup,
+    .info-tip:focus-within .info-tip__popup {
+      display: block;
     }
     .eyebrow {
       margin-bottom: 4px !important;
@@ -249,7 +308,31 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+    }
+    .scheme-card__footer {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
       margin-top: auto;
+    }
+    .scheme-report {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .scheme-report:hover {
+      color: var(--text);
+      border-color: #cbd5e1;
     }
     .source-link {
       display: inline-flex;
@@ -338,10 +421,10 @@
   <main class="page">
     <header class="hero">
       <div>
-        <h1>Scheme Hub</h1>
+        <h1>Ireland Cost Rental Hub</h1>
         <p>Cost rental schemes in Ireland — apply now and opening soon. Updated daily from affordablehomes.ie, LDA, and Tuath Housing.</p>
       </div>
-      <div class="updated">Updated 28 Jun 2026 13:23 IST</div>
+      <div class="updated">Updated 28 Jun 2026 13:42 IST</div>
     </header>
 
     <section class="summary" aria-label="Scheme summary">
@@ -354,7 +437,7 @@
       <div class="quick-links">
         <a href="#apply-now">🟢 Apply now</a>
         <a href="#opening-soon">🔵 Opening soon</a>
-        <a class="report-link" href="mailto:costrentalhub@gmail.com?subject=Scheme%20Hub%20%E2%80%94%20issue%20report&amp;body=Scheme%20name%3A%0AWhat%20is%20wrong%20%28broken%20link%2C%20wrong%20dates%2C%20etc.%29%3A%0APage%20URL%3A%0A">Report issue</a>
+        <a class="report-link" href="mailto:costrentalhub@gmail.com?subject=Ireland%20Cost%20Rental%20Hub%20%E2%80%94%20issue%20report&amp;body=Scheme%20name%3A%20%0AWhat%20is%20wrong%20%28broken%20link%2C%20wrong%20dates%2C%20etc.%29%3A%0A%0APage%20URL%3A%20https%3A//mateussibila.github.io/cost-rental-alerts/%0A">Report issue</a>
       </div>
     </nav>
 
@@ -364,9 +447,8 @@
   <div class="section-heading">
     <div>
       <p class="eyebrow">5 schemes</p>
-      <h2>🟢 Apply now</h2>
+      <h2 class="section-title">🟢 Apply now<span class="info-tip" tabindex="0" role="button" aria-label="Section information"><span class="info-tip__icon" aria-hidden="true">i</span><span class="info-tip__popup">Open application windows. Schemes with a close date are sorted first so the earliest deadlines are easiest to spot. This app is in test phase. If you find inconsistencies, please use the Report button and we will work on fixing the problem.</span></span></h2>
     </div>
-    <p>Open application windows. Schemes with a close date are sorted first so the earliest deadlines are easiest to spot.</p>
   </div>
   <div class="scheme-grid">
     <article class="scheme-card" data-search="carrigmore woods dublin - citywest carrigmore woods, citywest, co. dublin, ireland open 1595 1 2 23/06/2026 30/06/2026 affordablehomes">
@@ -380,8 +462,11 @@
   <dl class="details">
     <div class="detail"><dt>Location</dt><dd>Dublin - Citywest</dd></div><div class="detail"><dt>Price from</dt><dd>EUR 1595</dd></div><div class="detail"><dt>Homes</dt><dd>1</dd></div><div class="detail"><dt>Bedrooms</dt><dd>2</dd></div><div class="detail"><dt>Income</dt><dd>Not listed</dd></div><div class="detail"><dt>Opens</dt><dd>23/06/2026</dd></div><div class="detail"><dt>Closes</dt><dd>30/06/2026</dd></div>
   </dl>
-  <div class="source-links">
-    <a class="source-link" href="https://affordablehomes.ie/rent/carrigmorewoods/" target="_blank" rel="noopener noreferrer">affordablehomes</a>
+  <div class="scheme-card__footer">
+    <div class="source-links">
+      <a class="source-link" href="https://affordablehomes.ie/rent/carrigmorewoods/" target="_blank" rel="noopener noreferrer">affordablehomes</a>
+    </div>
+    <a class="scheme-report" href="mailto:costrentalhub@gmail.com?subject=Ireland%20Cost%20Rental%20Hub%20%E2%80%94%20issue%20report&amp;body=Scheme%20name%3A%20Carrigmore%20Woods%0AWhat%20is%20wrong%20%28broken%20link%2C%20wrong%20dates%2C%20etc.%29%3A%0A%0APage%20URL%3A%20https%3A//mateussibila.github.io/cost-rental-alerts/%0A">Report</a>
   </div>
 </article>
 <article class="scheme-card" data-search="kilcarbery grange dublin - d22 clondalkin kilcarbery grange, clondalkin, dublin 22, co. dublin, ireland open 1264 2 2 23/06/2026 30/06/2026 affordablehomes">
@@ -395,8 +480,11 @@
   <dl class="details">
     <div class="detail"><dt>Location</dt><dd>Dublin - D22 Clondalkin</dd></div><div class="detail"><dt>Price from</dt><dd>EUR 1264</dd></div><div class="detail"><dt>Homes</dt><dd>2</dd></div><div class="detail"><dt>Bedrooms</dt><dd>2</dd></div><div class="detail"><dt>Income</dt><dd>Not listed</dd></div><div class="detail"><dt>Opens</dt><dd>23/06/2026</dd></div><div class="detail"><dt>Closes</dt><dd>30/06/2026</dd></div>
   </dl>
-  <div class="source-links">
-    <a class="source-link" href="https://affordablehomes.ie/rent/kilcarberygrange2/" target="_blank" rel="noopener noreferrer">affordablehomes</a>
+  <div class="scheme-card__footer">
+    <div class="source-links">
+      <a class="source-link" href="https://affordablehomes.ie/rent/kilcarberygrange2/" target="_blank" rel="noopener noreferrer">affordablehomes</a>
+    </div>
+    <a class="scheme-report" href="mailto:costrentalhub@gmail.com?subject=Ireland%20Cost%20Rental%20Hub%20%E2%80%94%20issue%20report&amp;body=Scheme%20name%3A%20Kilcarbery%20Grange%0AWhat%20is%20wrong%20%28broken%20link%2C%20wrong%20dates%2C%20etc.%29%3A%0A%0APage%20URL%3A%20https%3A//mateussibila.github.io/cost-rental-alerts/%0A">Report</a>
   </div>
 </article>
 <article class="scheme-card" data-search="barnwell point, hansfield, dublin 15 dublin - d15 hansfield barnwell point, hansfield, dublin 15, ireland open 1225 2 1-2 01/07/2026 lda">
@@ -410,8 +498,11 @@
   <dl class="details">
     <div class="detail"><dt>Location</dt><dd>Dublin - D15 Hansfield</dd></div><div class="detail"><dt>Price from</dt><dd>EUR 1225</dd></div><div class="detail"><dt>Homes</dt><dd>2</dd></div><div class="detail"><dt>Bedrooms</dt><dd>1-2</dd></div><div class="detail"><dt>Income</dt><dd>EUR 42000 - EUR 66000</dd></div><div class="detail"><dt>Opens</dt><dd>Not listed</dd></div><div class="detail"><dt>Closes</dt><dd>01/07/2026</dd></div>
   </dl>
-  <div class="source-links">
-    <a class="source-link" href="https://lda.ie/affordable-homes/lda-cost-rental/barnwell-point-hansfield-dublin-15-8" target="_blank" rel="noopener noreferrer">lda</a>
+  <div class="scheme-card__footer">
+    <div class="source-links">
+      <a class="source-link" href="https://lda.ie/affordable-homes/lda-cost-rental/barnwell-point-hansfield-dublin-15-8" target="_blank" rel="noopener noreferrer">lda</a>
+    </div>
+    <a class="scheme-report" href="mailto:costrentalhub@gmail.com?subject=Ireland%20Cost%20Rental%20Hub%20%E2%80%94%20issue%20report&amp;body=Scheme%20name%3A%20Barnwell%20Point%2C%20Hansfield%2C%20Dublin%2015%0AWhat%20is%20wrong%20%28broken%20link%2C%20wrong%20dates%2C%20etc.%29%3A%0A%0APage%20URL%3A%20https%3A//mateussibila.github.io/cost-rental-alerts/%0A">Report</a>
   </div>
 </article>
 <article class="scheme-card" data-search="the quarter, citywest, dublin 24 dublin - d24 citywest the quarter, citywest, dublin 24, ireland open 1580 1 2 01/07/2026 lda">
@@ -425,8 +516,11 @@
   <dl class="details">
     <div class="detail"><dt>Location</dt><dd>Dublin - D24 Citywest</dd></div><div class="detail"><dt>Price from</dt><dd>EUR 1580</dd></div><div class="detail"><dt>Homes</dt><dd>1</dd></div><div class="detail"><dt>Bedrooms</dt><dd>2</dd></div><div class="detail"><dt>Income</dt><dd>EUR 54171 - EUR 66000</dd></div><div class="detail"><dt>Opens</dt><dd>Not listed</dd></div><div class="detail"><dt>Closes</dt><dd>01/07/2026</dd></div>
   </dl>
-  <div class="source-links">
-    <a class="source-link" href="https://lda.ie/affordable-homes/lda-cost-rental/the-quarter-citywest-dublin-24-7" target="_blank" rel="noopener noreferrer">lda</a>
+  <div class="scheme-card__footer">
+    <div class="source-links">
+      <a class="source-link" href="https://lda.ie/affordable-homes/lda-cost-rental/the-quarter-citywest-dublin-24-7" target="_blank" rel="noopener noreferrer">lda</a>
+    </div>
+    <a class="scheme-report" href="mailto:costrentalhub@gmail.com?subject=Ireland%20Cost%20Rental%20Hub%20%E2%80%94%20issue%20report&amp;body=Scheme%20name%3A%20The%20Quarter%2C%20Citywest%2C%20Dublin%2024%0AWhat%20is%20wrong%20%28broken%20link%2C%20wrong%20dates%2C%20etc.%29%3A%0A%0APage%20URL%3A%20https%3A//mateussibila.github.io/cost-rental-alerts/%0A">Report</a>
   </div>
 </article>
 <article class="scheme-card" data-search="folkstown park dublin - balbriggan folkstown park, balbriggan, co. dublin, ireland open 1150 40 1-3 04/06/2026 tuath">
@@ -440,8 +534,11 @@
   <dl class="details">
     <div class="detail"><dt>Location</dt><dd>Dublin - Balbriggan</dd></div><div class="detail"><dt>Price from</dt><dd>EUR 1150</dd></div><div class="detail"><dt>Homes</dt><dd>40</dd></div><div class="detail"><dt>Bedrooms</dt><dd>1-3</dd></div><div class="detail"><dt>Income</dt><dd>Not listed</dd></div><div class="detail"><dt>Opens</dt><dd>04/06/2026</dd></div><div class="detail"><dt>Closes</dt><dd>Not listed</dd></div>
   </dl>
-  <div class="source-links">
-    <a class="source-link" href="https://tuathhousing.ie/properties/folkstown-park-2/" target="_blank" rel="noopener noreferrer">tuath</a>
+  <div class="scheme-card__footer">
+    <div class="source-links">
+      <a class="source-link" href="https://tuathhousing.ie/properties/folkstown-park-2/" target="_blank" rel="noopener noreferrer">tuath</a>
+    </div>
+    <a class="scheme-report" href="mailto:costrentalhub@gmail.com?subject=Ireland%20Cost%20Rental%20Hub%20%E2%80%94%20issue%20report&amp;body=Scheme%20name%3A%20Folkstown%20Park%0AWhat%20is%20wrong%20%28broken%20link%2C%20wrong%20dates%2C%20etc.%29%3A%0A%0APage%20URL%3A%20https%3A//mateussibila.github.io/cost-rental-alerts/%0A">Report</a>
   </div>
 </article>
   </div>
@@ -451,9 +548,8 @@
   <div class="section-heading">
     <div>
       <p class="eyebrow">0 schemes</p>
-      <h2>🔵 Opening soon</h2>
+      <h2 class="section-title">🔵 Opening soon<span class="info-tip" tabindex="0" role="button" aria-label="Section information"><span class="info-tip__icon" aria-hidden="true">i</span><span class="info-tip__popup">Not yet open for applications. Sorted by opening date, soonest first. This app is in test phase. If you find inconsistencies, please use the Report button and we will work on fixing the problem.</span></span></h2>
     </div>
-    <p>Schemes opening in the next two weeks.</p>
   </div>
   <div class="scheme-grid">
     <p class="empty-state">No schemes are opening soon right now.</p>
@@ -461,7 +557,7 @@
 </section>
 
     <footer>
-      <a class="footer-link" href="mailto:costrentalhub@gmail.com?subject=Scheme%20Hub%20%E2%80%94%20issue%20report&amp;body=Scheme%20name%3A%0AWhat%20is%20wrong%20%28broken%20link%2C%20wrong%20dates%2C%20etc.%29%3A%0APage%20URL%3A%0A">Report issue</a>
+      <a class="footer-link" href="mailto:costrentalhub@gmail.com?subject=Ireland%20Cost%20Rental%20Hub%20%E2%80%94%20issue%20report&amp;body=Scheme%20name%3A%20%0AWhat%20is%20wrong%20%28broken%20link%2C%20wrong%20dates%2C%20etc.%29%3A%0A%0APage%20URL%3A%20https%3A//mateussibila.github.io/cost-rental-alerts/%0A">Report issue</a>
     </footer>
   </main>
 

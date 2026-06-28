@@ -141,7 +141,7 @@ def _message_header(*, include_year: bool) -> List[str]:
     today = datetime.now(TZ).strftime("%d/%m/%Y" if include_year else "%d/%m")
     return [
         f"🏠 Cost Rental — {today}",
-        f"Scheme Hub: {scheme_hub_url()}",
+        f"Ireland Cost Rental Hub: {scheme_hub_url()}",
         "",
     ]
 

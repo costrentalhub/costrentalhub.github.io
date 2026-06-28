@@ -80,7 +80,7 @@ class NotifyMessageTests(unittest.TestCase):
         )
 
         self.assertIn("🏠 Cost Rental — 28/06", message)
-        self.assertIn("Scheme Hub:", message)
+        self.assertIn("Ireland Cost Rental Hub:", message)
         self.assertIn("🟢 Apply now:", message)
         self.assertIn("🔥 Laois — Rath Rua", message)
         self.assertIn("Dublin — Cookstown Gateway", message)
@@ -110,7 +110,7 @@ class NotifyMessageTests(unittest.TestCase):
         )
 
         self.assertIn("🏠 Cost Rental — 28/06/2026", message)
-        self.assertIn("Scheme Hub:", message)
+        self.assertIn("Ireland Cost Rental Hub:", message)
         self.assertIn("🟢 Apply now (1):", message)
         self.assertIn("🔥 Rath Rua — Laois - Portlaoise", message)
         self.assertIn("💰 from €1,105/mo", message)
@@ -121,19 +121,19 @@ class NotifyMessageTests(unittest.TestCase):
     def test_empty_sections_are_omitted(self):
         message = notify.format_whatsapp_message([], [])
 
-        self.assertIn("Scheme Hub:", message)
+        self.assertIn("Ireland Cost Rental Hub:", message)
         self.assertNotIn("Apply now", message)
         self.assertNotIn("Opening soon", message)
 
     def test_short_whatsapp_message_is_not_split(self):
-        message = "🏠 Cost Rental — 28/06\n\nScheme Hub: https://example.com"
+        message = "🏠 Cost Rental — 28/06\n\nIreland Cost Rental Hub: https://example.com"
 
         chunks = notify._split_whatsapp_message(message, max_chars=500)
 
         self.assertEqual(chunks, [message])
 
     def test_long_whatsapp_message_is_split_into_numbered_parts(self):
-        blocks = ["🏠 Cost Rental — 28/06", "Scheme Hub: https://example.com"]
+        blocks = ["🏠 Cost Rental — 28/06", "Ireland Cost Rental Hub: https://example.com"]
         for index in range(1, 12):
             blocks.append(
                 "\n".join(

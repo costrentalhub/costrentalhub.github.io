@@ -43,7 +43,7 @@ Bootstrap: first WhatsApp/email send is a short setup message; no flood of all o
 
 Every non-bootstrap message includes:
 
-- **Scheme Hub** link to the GitHub Pages dashboard
+- **Ireland Cost Rental Hub** link to the GitHub Pages dashboard
 - **Apply now:** all open listings; first-time schemes prefixed with 🔥
 - **Opening soon:** non-open listings with `applications_open_at` within 14 days
 

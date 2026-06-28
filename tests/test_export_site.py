@@ -280,6 +280,12 @@ class ExportSiteTests(unittest.TestCase):
 
         self.assertIn("mailto:costrentalhub@gmail.com", href)
 
+    def test_report_issue_href_prefills_scheme_name(self):
+        with patch.dict("os.environ", {}, clear=True):
+            href = report_issue_href(scheme_name="Kilcarbery Grange")
+
+        self.assertIn("Kilcarbery%20Grange", href)
+
 
 if __name__ == "__main__":
     unittest.main()

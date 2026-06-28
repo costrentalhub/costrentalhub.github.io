@@ -14,7 +14,7 @@ from html import escape
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from cost_rental_alerts.notify import report_issue_email
+from cost_rental_alerts.notify import report_issue_email, scheme_hub_url
 from cost_rental_alerts.paths import DATA_DIR, REPO_ROOT
 
 TZ = ZoneInfo("Europe/Dublin")
@@ -219,25 +219,27 @@ def sort_source_links(sources: Iterable[SourceLink]) -> list[SourceLink]:
     )
 
 
-def report_issue_href() -> str:
+def report_issue_href(*, scheme_name: str = "", page_url: str = "") -> str:
+    scheme_line = scheme_name.strip() or ""
+    page_line = page_url.strip() or scheme_hub_url()
     email = report_issue_email()
     if email:
-        subject = urllib.parse.quote("Scheme Hub — issue report")
+        subject = urllib.parse.quote(f"{HUB_TITLE} — issue report")
         body = urllib.parse.quote(
-            "Scheme name:\n"
-            "What is wrong (broken link, wrong dates, etc.):\n"
-            "Page URL:\n"
+            f"Scheme name: {scheme_line}\n"
+            "What is wrong (broken link, wrong dates, etc.):\n\n"
+            f"Page URL: {page_line}\n"
         )
         return f"mailto:{email}?subject={subject}&body={body}"
 
     repo = os.environ.get("REPORT_ISSUE_REPO", DEFAULT_REPORT_ISSUE_REPO).strip()
     params = urllib.parse.urlencode(
         {
-            "title": "Scheme Hub issue",
+            "title": f"{HUB_TITLE} issue",
             "body": (
-                "**Scheme name:** \n"
+                f"**Scheme name:** {scheme_line}\n"
                 "**What is wrong:** \n"
-                "**Page URL:** \n"
+                f"**Page URL:** {page_line}\n"
             ),
         }
     )
@@ -276,6 +278,9 @@ def render_source_links(scheme: Scheme) -> str:
     return "\n".join(links)
 
 
+HUB_TITLE = "Ireland Cost Rental Hub"
+
+
 def render_detail(label: str, value: str) -> str:
     return (
         '<div class="detail">'
@@ -283,6 +288,12 @@ def render_detail(label: str, value: str) -> str:
         f'<dd>{escape(value or "Not listed")}</dd>'
         "</div>"
     )
+
+
+TEST_PHASE_NOTE = (
+    "This app is in test phase. If you find inconsistencies, please use the Report "
+    "button and we will work on fixing the problem."
+)
 
 
 def render_scheme_card(scheme: Scheme, *, extra_badges: Iterable[str] = ()) -> str:
@@ -317,17 +328,29 @@ def render_scheme_card(scheme: Scheme, *, extra_badges: Iterable[str] = ()) -> s
   <dl class="details">
     {''.join(details)}
   </dl>
-  <div class="source-links">
-    {render_source_links(scheme)}
+  <div class="scheme-card__footer">
+    <div class="source-links">
+      {render_source_links(scheme)}
+    </div>
+    <a class="scheme-report" href="{escape(report_issue_href(scheme_name=scheme.name), quote=True)}">Report</a>
   </div>
 </article>
 """.strip()
 
 
+def render_info_tip(text: str) -> str:
+    return (
+        '<span class="info-tip" tabindex="0" role="button" aria-label="Section information">'
+        '<span class="info-tip__icon" aria-hidden="true">i</span>'
+        f'<span class="info-tip__popup">{escape(text)}</span>'
+        "</span>"
+    )
+
+
 def render_section(
     section_id: str,
     title: str,
-    description: str,
+    info_tip: str,
     schemes: list[Scheme],
     *,
     empty_message: str,
@@ -343,9 +366,8 @@ def render_section(
   <div class="section-heading">
     <div>
       <p class="eyebrow">{escape(fmt_count(len(schemes), "scheme"))}</p>
-      <h2>{escape(title)}</h2>
+      <h2 class="section-title">{escape(title)}{render_info_tip(info_tip)}</h2>
     </div>
-    <p>{escape(description)}</p>
   </div>
   <div class="scheme-grid">
     {cards}
@@ -371,7 +393,7 @@ def render_html(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title>Scheme Hub — Cost Rental</title>
+  <title>{escape(HUB_TITLE)}</title>
   <style>
     :root {{
       color-scheme: light;
@@ -510,20 +532,79 @@ def render_html(
       scroll-margin-top: 100px;
     }}
     .section-heading {{
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(260px, 420px);
-      gap: 20px;
-      align-items: end;
       margin-bottom: 16px;
     }}
-    .section-heading h2 {{
+    .section-title {{
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       margin: 0;
       font-size: clamp(1.65rem, 3vw, 2.45rem);
       letter-spacing: -0.03em;
     }}
-    .section-heading p {{
-      margin: 0;
+    .info-tip {{
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }}
+    .info-tip__icon {{
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid var(--muted);
       color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      font-style: italic;
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: help;
+      user-select: none;
+    }}
+    .info-tip:hover .info-tip__icon,
+    .info-tip:focus-visible .info-tip__icon {{
+      color: var(--brand-dark);
+      border-color: var(--brand);
+    }}
+    .info-tip__popup {{
+      display: none;
+      position: absolute;
+      left: 50%;
+      top: calc(100% + 10px);
+      transform: translateX(-50%);
+      width: min(340px, 78vw);
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 500;
+      line-height: 1.45;
+      letter-spacing: normal;
+      text-transform: none;
+      box-shadow: var(--shadow);
+      z-index: 20;
+    }}
+    .info-tip__popup::before {{
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -6px;
+      width: 10px;
+      height: 10px;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+      transform: translateX(-50%) rotate(45deg);
+    }}
+    .info-tip:hover .info-tip__popup,
+    .info-tip:focus-within .info-tip__popup {{
+      display: block;
     }}
     .eyebrow {{
       margin-bottom: 4px !important;
@@ -616,7 +697,31 @@ def render_html(
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+    }}
+    .scheme-card__footer {{
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
       margin-top: auto;
+    }}
+    .scheme-report {{
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }}
+    .scheme-report:hover {{
+      color: var(--text);
+      border-color: #cbd5e1;
     }}
     .source-link {{
       display: inline-flex;
@@ -705,7 +810,7 @@ def render_html(
   <main class="page">
     <header class="hero">
       <div>
-        <h1>Scheme Hub</h1>
+        <h1>{escape(HUB_TITLE)}</h1>
         <p>Cost rental schemes in Ireland — apply now and opening soon. Updated daily from affordablehomes.ie, LDA, and Tuath Housing.</p>
       </div>
       <div class="updated">Updated {escape(generated_label)}</div>
@@ -730,7 +835,11 @@ def render_html(
     {render_section(
         "apply-now",
         "🟢 Apply now",
-        "Open application windows. Schemes with a close date are sorted first so the earliest deadlines are easiest to spot.",
+        (
+            "Open application windows. Schemes with a close date are sorted first so the "
+            "earliest deadlines are easiest to spot. "
+            + TEST_PHASE_NOTE
+        ),
         apply_now,
         empty_message="No schemes are open for applications right now.",
     )}
@@ -738,7 +847,10 @@ def render_html(
     {render_section(
         "opening-soon",
         "🔵 Opening soon",
-        "Schemes opening in the next two weeks.",
+        (
+            "Not yet open for applications. Sorted by opening date, soonest first. "
+            + TEST_PHASE_NOTE
+        ),
         opening_soon,
         empty_message="No schemes are opening soon right now.",
     )}

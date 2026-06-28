@@ -1,18 +1,32 @@
 # Open tasks and backlog
 
+## Current phase — solo testing
+
+Hub is live at https://mateussibila.github.io/cost-rental-alerts/ but **not yet promoted to the public**. One person testing alerts, data quality, and hub UX before wider use.
+
+| Item | Status |
+|---|---|
+| Daily scrape + WhatsApp + email alerts | Running |
+| Ireland Cost Rental Hub (Apply now / Opening soon) | Live |
+| Ops email (`costrentalhub@gmail.com`) | Scrape failures + broken links |
+| Per-scheme **Report** button (`mailto`) | In progress — local preview |
+| Public launch | Not yet |
+
+---
+
 ## Immediate (high priority)
 
 | Item | Notes |
 |---|---|
-| **Fix iPhone automations** | Email → Shortcuts → Notes not reliable in background; finish trigger setup or add Time of Day backup |
-| **Monitor emails + dates** | Watch daily alerts; confirm no false “Opening Soon” or wrong open/close dates |
+| **Solo testing** | Validate alerts, hub data, and link quality before public use |
+| **Monitor emails + dates** | Confirm no stale Open rows, wrong close dates, or duplicate sections |
+| **Fix iPhone automations** | Email → Shortcuts → Notes not reliable in background; Time of Day backup |
 
 ### iOS Shortcuts status
 
 - Gmail linked in Mail app; email automation created
 - Shortcut: `Get Text from Input` → `Append to Note` (Cost Rental)
 - **Issue:** automation only ran after opening Mail — not on banner/background
-- **Cause:** Email trigger fires when Mail syncs, not on notification alone
 - **Workarounds:** Background App Refresh → Mail ON; subject filter `Cost Rental Alert`; Time of Day 08:15 backup with CSV link
 
 ---
@@ -45,33 +59,56 @@ AH calendar day/month-only dates were assumed as current year → false “openi
 - Data → `data/`
 - Docs → `docs/00–04_*.md`
 
+### 2026-06-28 — Ireland Cost Rental Hub + ops alerts
+
+- Hub rebranded: Apply now / Opening soon, search, daily update timestamp
+- Daily alert digest redesigned (Apply now + Opening soon; Closing Soon removed)
+- Ops alerts: scrape failures + broken active links → `costrentalhub@gmail.com`
+- Hub email routing: daily alerts from hub account; digest to personal Gmail
+- Tuath scraper fixes (403 headers, closed inference, close-date year)
+- Affordablehomes closed overrides for stale LDA/Tuath rows
+- Hub links: one link per source; cross-source only (AH + LDA/Tuath)
+- Email digest aligned with hub (`resolve_export_status` for past close dates)
+- CI: `check_links --warn-only` after each scrape
+
 ---
 
 ## Backlog
 
-### 1. Floor area per unit type
+### 1. Report issue modal (FormSubmit.co) — future, not essential now
+
+Replace `mailto` with an in-hub modal:
+
+- Checkboxes: broken link, wrong status, wrong dates, wrong details, missing scheme, stale listing, other
+- Optional free-text details
+- Submit via [FormSubmit.co](https://formsubmit.co) → `costrentalhub@gmail.com`
+- Success message stays in hub (no user email app)
+
+**Why later:** hub works for solo testing with `mailto` + per-scheme Report button. FormSubmit needs one-time email activation; modal UX is polish before public launch.
+
+### 2. Floor area per unit type
 
 Extract m² per unit type / floor plan. Model as JSON sub-records or expanded CSV rows.
 
-### 2. Exact location and Maps link
+### 3. Exact location and Maps link
 
-Partial — `address` exists. Remaining: `latitude`, `longitude`, `maps_url`, Maps line in WhatsApp, hub site link at top of message.
+Partial — `address` exists. Remaining: `latitude`, `longitude`, `maps_url`, Maps line in WhatsApp.
 
-### 3. Master spreadsheet
+### 4. Master spreadsheet
 
 Public data view mirroring DB + optional “Distance to” tab with routing API.
 
-### 4. Hub site + interactive map (high priority)
+### 5. Hub map
 
-Private GitHub Pages dashboard exists with Apply now and Opening soon sections. Remaining: export `listings.json` after each scrape and add interactive map pins.
+Export `listings.json` after each scrape and add interactive map pins.
 
-### 5. Historical price per m² by region
+### 6. Historical price per m² by region
 
-Needs floor area data (item 1) + coordinates (item 2).
+Needs floor area data (item 2) + coordinates (item 3).
 
-### 6. Income limits — done for LDA
+### 7. Income limits — done for LDA
 
-Optional: extract from AH/Tuath; income filter in webapp.
+Optional: extract from AH/Tuath; income filter in hub.
 
 ---
 
@@ -79,11 +116,12 @@ Optional: extract from AH/Tuath; income filter in webapp.
 
 | Priority | Item |
 |---|---|
-| **High** | iPhone automations |
-| **High** | Date monitoring in production |
-| **High** | Coordinates + hub site |
-| Medium | Maps link in WhatsApp |
-| Medium | Floor area → €/m² charts |
+| **High** | Solo testing — alerts + hub accuracy |
+| **High** | Date / stale-status monitoring in production |
+| Medium | FormSubmit modal (before public launch) |
+| Medium | Coordinates + hub map |
+| Medium | iPhone automations |
+| Low | Floor area → €/m² charts |
 | Low | Historical regional charts |
 
-*Last updated: 2026-06-10*
+*Last updated: 2026-06-28*
