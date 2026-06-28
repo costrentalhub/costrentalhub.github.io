@@ -106,6 +106,42 @@ def load_rows(csv_path: Path = CSV_PATH) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def _best_link_per_source(
+    rows: Iterable[dict[str, str]],
+) -> dict[str, SourceLink]:
+    """Keep one active link per source, preferring the fullest row."""
+    best: dict[str, tuple[tuple[int, int], SourceLink]] = {}
+    for row in rows:
+        status = normalize_key(row.get("status"))
+        if status not in {"open", "opening soon"}:
+            continue
+        source = row.get("source", "").strip()
+        link = row.get("link", "").strip()
+        if not source or not link:
+            continue
+        src_key = normalize_key(source)
+        score = row_score(row)
+        existing = best.get(src_key)
+        if existing is None or score > existing[0]:
+            best[src_key] = (score, SourceLink(source=source, link=link))
+    return {src_key: link for src_key, (_, link) in best.items()}
+
+
+def active_links_by_name(rows: Iterable[dict[str, str]]) -> dict[str, dict[str, SourceLink]]:
+    """Map scheme name -> source -> best active link."""
+    grouped: dict[str, list[dict[str, str]]] = {}
+    for row in rows:
+        name = normalize_key(row.get("name"))
+        if not name:
+            continue
+        grouped.setdefault(name, []).append(row)
+
+    return {
+        name: _best_link_per_source(name_rows)
+        for name, name_rows in grouped.items()
+    }
+
+
 def build_schemes(rows: Iterable[dict[str, str]]) -> list[Scheme]:
     grouped: dict[tuple[str, str, str, str, str], list[dict[str, str]]] = {}
     for row in rows:
@@ -115,15 +151,8 @@ def build_schemes(rows: Iterable[dict[str, str]]) -> list[Scheme]:
     schemes: list[Scheme] = []
     for group_rows in grouped.values():
         best = max(group_rows, key=row_score)
-        sources: list[SourceLink] = []
-        seen_sources: set[tuple[str, str]] = set()
-        for row in sorted(group_rows, key=lambda item: normalize_key(item.get("source"))):
-            source = row.get("source", "").strip()
-            link = row.get("link", "").strip()
-            key = (source, link)
-            if source and key not in seen_sources:
-                sources.append(SourceLink(source=source, link=link))
-                seen_sources.add(key)
+        links_by_source = _best_link_per_source(group_rows)
+        sources = sort_source_links(links_by_source.values())
 
         schemes.append(
             Scheme(
@@ -169,32 +198,18 @@ def opening_soon_schemes(schemes: Iterable[Scheme]) -> list[Scheme]:
 
 
 def enrich_scheme_sources(schemes: list[Scheme], rows: Iterable[dict[str, str]]) -> None:
-    """Attach alternate source links from active CSV rows with the same scheme name."""
-    by_name: dict[str, list[SourceLink]] = {}
-    for row in rows:
-        status = normalize_key(row.get("status"))
-        if status not in {"open", "opening soon"}:
-            continue
-        name = normalize_key(row.get("name"))
-        source = row.get("source", "").strip()
-        link = row.get("link", "").strip()
-        if not name or not source or not link:
-            continue
-        bucket = by_name.setdefault(name, [])
-        if not any(item.source == source and item.link == link for item in bucket):
-            bucket.append(SourceLink(source=source, link=link))
+    """Add cross-source links when the same scheme name is active on another source."""
+    by_name = active_links_by_name(rows)
 
     for scheme in schemes:
-        extras = by_name.get(normalize_key(scheme.name), [])
-        seen = {(item.source, item.link) for item in scheme.sources}
-        for link in sorted(
-            extras,
-            key=lambda item: SOURCE_LINK_PRIORITY.get(normalize_key(item.source), 9),
-        ):
-            key = (link.source, link.link)
-            if key not in seen:
-                scheme.sources.append(link)
-                seen.add(key)
+        extras = by_name.get(normalize_key(scheme.name), {})
+        seen_sources = {normalize_key(item.source) for item in scheme.sources}
+        for link in sort_source_links(extras.values()):
+            src_key = normalize_key(link.source)
+            if src_key in seen_sources:
+                continue
+            scheme.sources.append(link)
+            seen_sources.add(src_key)
 
 
 def sort_source_links(sources: Iterable[SourceLink]) -> list[SourceLink]:

@@ -226,6 +226,54 @@ class ExportSiteTests(unittest.TestCase):
             [("affordablehomes", "https://example.test/kilcarberygrange2")],
         )
 
+    def test_build_schemes_keeps_one_link_per_source(self):
+        rows = [
+            {
+                "name": "Kilcarbery Grange",
+                "location": "Dublin - D22 Clondalkin",
+                "address": "",
+                "price": "1264",
+                "quantity": "2",
+                "beds": "2",
+                "status": "open",
+                "income_min": "",
+                "income_max": "",
+                "listed_at": "",
+                "open_on": "23/06/2026",
+                "close_on": "30/06/2026",
+                "source": "affordablehomes",
+                "link": "https://example.test/kilcarberygrange2",
+            },
+            {
+                "name": "Kilcarbery Grange",
+                "location": "Dublin - D22 Clondalkin",
+                "address": "",
+                "price": "1295",
+                "quantity": "1",
+                "beds": "1",
+                "status": "open",
+                "income_min": "",
+                "income_max": "",
+                "listed_at": "",
+                "open_on": "01/07/2026",
+                "close_on": "08/07/2026",
+                "source": "affordablehomes",
+                "link": "https://example.test/kilcarberygrange3",
+            },
+        ]
+
+        schemes = build_schemes(rows)
+
+        self.assertEqual(len(schemes), 2)
+        self.assertEqual(
+            [(source.source, source.link) for source in schemes[0].sources],
+            [("affordablehomes", "https://example.test/kilcarberygrange2")],
+        )
+        self.assertEqual(
+            [(source.source, source.link) for source in schemes[1].sources],
+            [("affordablehomes", "https://example.test/kilcarberygrange3")],
+        )
+
     def test_report_issue_href_uses_default_ops_email(self):
         with patch.dict("os.environ", {}, clear=True):
             href = report_issue_href()
