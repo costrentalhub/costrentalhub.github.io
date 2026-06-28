@@ -1,6 +1,7 @@
 import os
 import smtplib
 import ssl
+import time
 import urllib.parse
 from datetime import date, datetime
 from email.message import EmailMessage
@@ -10,8 +11,10 @@ from zoneinfo import ZoneInfo
 import requests
 
 from cost_rental_alerts.diff import NewsItem
+from cost_rental_alerts.locations import format_city_neighborhood
 
 TZ = ZoneInfo("Europe/Dublin")
+WHATSAPP_CHUNK_CHARS = int(os.environ.get("WHATSAPP_CHUNK_CHARS", "650"))
 
 
 def _today() -> date:
@@ -42,6 +45,13 @@ def _format_open_date_short(value: str | None) -> str:
     if not parsed:
         return ""
     return parsed.strftime("%d/%m/%y")
+
+
+def _format_day_month(value: str | None) -> str:
+    parsed = _parse_date(value)
+    if not parsed:
+        return "date TBC"
+    return parsed.strftime("%d/%m")
 
 
 def _closes_line(close_at: str | None) -> str:
@@ -155,6 +165,23 @@ def _exclude_items(
     return [item for item in items if _identity_keys(item).isdisjoint(excluded_keys)]
 
 
+def _message_groups(
+    news: List[NewsItem],
+    closing_soon: List[NewsItem] | None = None,
+    opening_soon: List[NewsItem] | None = None,
+) -> tuple[List[NewsItem], List[NewsItem], List[NewsItem]]:
+    news = _dedupe_news(news)
+    opened = [n for n in news if n.notification_type in ("new_open", "opened_today")]
+    soon_source = (
+        opening_soon
+        if opening_soon is not None
+        else [n for n in news if n.notification_type == "opening_soon"]
+    )
+    soon = _exclude_items(_dedupe_news(soon_source), opened)
+    closing = _exclude_items(_dedupe_news(closing_soon or []), opened)
+    return opened, closing, soon
+
+
 def _append_listing_section(
     lines: List[str],
     heading: str,
@@ -200,16 +227,7 @@ def format_message(
 ) -> str:
     today = datetime.now(TZ).strftime("%d/%m/%Y")
     lines = [f"🏠 Cost Rental Alert — {today}", ""]
-
-    news = _dedupe_news(news)
-    opened = [n for n in news if n.notification_type in ("new_open", "opened_today")]
-    soon_source = (
-        opening_soon
-        if opening_soon is not None
-        else [n for n in news if n.notification_type == "opening_soon"]
-    )
-    soon = _exclude_items(_dedupe_news(soon_source), opened)
-    closing = _exclude_items(_dedupe_news(closing_soon or []), opened)
+    opened, closing, soon = _message_groups(news, closing_soon, opening_soon)
 
     if opened:
         _append_listing_section(
@@ -245,6 +263,86 @@ def format_message(
         lines.append("")
 
     lines.append(f"({total_scraped} schemes monitored)")
+    return "\n".join(lines).strip()
+
+
+def _compact_city(item: NewsItem) -> str:
+    formatted = format_city_neighborhood(item.title, item.location)
+    return formatted.split(" - ", 1)[0]
+
+
+def _compact_item_line(index: int, item: NewsItem, date_value: str | None) -> List[str]:
+    return [
+        f"{index}. {_format_day_month(date_value)} - {_compact_city(item)}, {item.title}",
+        item.url,
+    ]
+
+
+def _append_compact_section(
+    lines: List[str],
+    heading: str,
+    items: List[NewsItem],
+    *,
+    date_field: str,
+    sort_by: str,
+) -> None:
+    if sort_by == "close":
+        sorted_items = _sort_by_close_date(items)
+    elif sort_by == "open":
+        sorted_items = _sort_by_open_date(items)
+    else:
+        sorted_items = items
+
+    lines.append(f"{heading}:")
+    if not sorted_items:
+        lines.append("none")
+        lines.append("")
+        return
+
+    for i, item in enumerate(sorted_items, 1):
+        date_value = (
+            item.applications_open_at
+            if date_field == "open"
+            else item.applications_close_at
+        )
+        lines.extend(_compact_item_line(i, item, date_value))
+    lines.append("")
+
+
+def format_whatsapp_message(
+    news: List[NewsItem],
+    total_scraped: int,
+    *,
+    closing_soon: List[NewsItem] | None = None,
+    opening_soon: List[NewsItem] | None = None,
+) -> str:
+    today = datetime.now(TZ).strftime("%d/%m")
+    opened, closing, soon = _message_groups(news, closing_soon, opening_soon)
+    lines = [f"🏠 Cost Rental — {today}", ""]
+
+    _append_compact_section(
+        lines,
+        "🆕 New",
+        opened,
+        date_field="close",
+        sort_by="close",
+    )
+    _append_compact_section(
+        lines,
+        "⏳ Closing soon",
+        closing,
+        date_field="close",
+        sort_by="close",
+    )
+    _append_compact_section(
+        lines,
+        "📅 Opening soon",
+        soon,
+        date_field="open",
+        sort_by="open",
+    )
+
+    lines.append(f"({total_scraped} monitored)")
     return "\n".join(lines).strip()
 
 
@@ -355,23 +453,100 @@ def send_email(message: str, dry_run: bool = False) -> bool:
     return True
 
 
+def _split_long_text(text: str, max_chars: int) -> List[str]:
+    chunks: List[str] = []
+    remaining = text
+    while len(remaining) > max_chars:
+        split_at = remaining.rfind("\n", 0, max_chars + 1)
+        if split_at <= 0:
+            split_at = remaining.rfind(" ", 0, max_chars + 1)
+        if split_at <= 0:
+            split_at = max_chars
+        chunks.append(remaining[:split_at].strip())
+        remaining = remaining[split_at:].strip()
+    if remaining:
+        chunks.append(remaining)
+    return chunks
+
+
+def _split_blocks(blocks: List[str], max_chars: int) -> List[str]:
+    chunks: List[str] = []
+    current = ""
+
+    for block in [block.strip() for block in blocks if block.strip()]:
+        if len(block) > max_chars:
+            if current:
+                chunks.append(current)
+                current = ""
+            chunks.extend(_split_long_text(block, max_chars))
+            continue
+
+        candidate = block if not current else f"{current}\n\n{block}"
+        if len(candidate) <= max_chars:
+            current = candidate
+        else:
+            if current:
+                chunks.append(current)
+            current = block
+
+    if current:
+        chunks.append(current)
+    return chunks
+
+
+def _split_whatsapp_message(
+    message: str,
+    max_chars: int = WHATSAPP_CHUNK_CHARS,
+) -> List[str]:
+    """Split long CallMeBot messages into block-preserving WhatsApp parts."""
+    if len(message) <= max_chars:
+        return [message]
+
+    header, separator, body = message.partition("\n\n")
+    if not separator:
+        return _split_long_text(message, max_chars)
+
+    # Reserve room for the repeated header and "(1/2)" marker in each part.
+    body_limit = max(200, max_chars - len(header) - 16)
+    body_chunks = _split_blocks(body.split("\n\n"), body_limit)
+    total = len(body_chunks)
+    if total <= 1:
+        return [message]
+
+    return [
+        f"{header} ({index}/{total})\n\n{chunk}"
+        for index, chunk in enumerate(body_chunks, 1)
+    ]
+
+
 def send_whatsapp(message: str, dry_run: bool = False) -> bool:
     phone = os.environ.get("CALLMEBOT_PHONE", "").strip()
     apikey = os.environ.get("CALLMEBOT_APIKEY", "").strip()
+    chunks = _split_whatsapp_message(message)
 
     if dry_run or not phone or not apikey:
         print("--- WhatsApp message (dry-run / missing credentials) ---")
-        print(message)
+        for index, chunk in enumerate(chunks, 1):
+            if len(chunks) > 1:
+                print(f"--- part {index}/{len(chunks)} ---")
+            print(chunk)
         print("--- end ---")
         return False
 
-    url = (
-        "https://api.callmebot.com/whatsapp.php?"
-        f"phone={urllib.parse.quote(phone)}"
-        f"&text={urllib.parse.quote(message)}"
-        f"&apikey={urllib.parse.quote(apikey)}"
-    )
-    response = requests.get(url, timeout=30)
-    response.raise_for_status()
-    print("WhatsApp message sent.")
+    for index, chunk in enumerate(chunks, 1):
+        url = (
+            "https://api.callmebot.com/whatsapp.php?"
+            f"phone={urllib.parse.quote(phone)}"
+            f"&text={urllib.parse.quote(chunk)}"
+            f"&apikey={urllib.parse.quote(apikey)}"
+        )
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        if index < len(chunks):
+            time.sleep(1)
+
+    if len(chunks) == 1:
+        print("WhatsApp message sent.")
+    else:
+        print(f"WhatsApp message sent in {len(chunks)} parts.")
     return True
