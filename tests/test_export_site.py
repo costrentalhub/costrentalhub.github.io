@@ -143,7 +143,7 @@ class ExportSiteTests(unittest.TestCase):
                 "price": "1219",
                 "quantity": "1",
                 "beds": "3",
-                "status": "closed",
+                "status": "open",
                 "income_min": "",
                 "income_max": "",
                 "listed_at": "",
@@ -157,13 +157,73 @@ class ExportSiteTests(unittest.TestCase):
         schemes = build_schemes(rows)
         enrich_scheme_sources(schemes, rows)
 
-        self.assertEqual(len(schemes), 1)
+        self.assertEqual(len(schemes), 2)
         self.assertEqual(
             [(source.source, source.link) for source in sort_source_links(schemes[0].sources)],
             [
                 ("affordablehomes", "https://example.test/affordablehomes/mountneil1"),
                 ("tuath", "https://example.test/tuath/mountneil"),
             ],
+        )
+
+    def test_enrich_scheme_sources_skips_closed_phase_links(self):
+        rows = [
+            {
+                "name": "Kilcarbery Grange",
+                "location": "Dublin - D22 Clondalkin",
+                "address": "",
+                "price": "1264",
+                "quantity": "2",
+                "beds": "2",
+                "status": "open",
+                "income_min": "",
+                "income_max": "",
+                "listed_at": "",
+                "open_on": "23/06/2026",
+                "close_on": "30/06/2026",
+                "source": "affordablehomes",
+                "link": "https://example.test/kilcarberygrange2",
+            },
+            {
+                "name": "Kilcarbery Grange",
+                "location": "Dublin - Clondalkin",
+                "address": "",
+                "price": "1295",
+                "quantity": "1",
+                "beds": "1",
+                "status": "closed",
+                "income_min": "",
+                "income_max": "",
+                "listed_at": "",
+                "open_on": "09/04/2026",
+                "close_on": "16/04/2026",
+                "source": "affordablehomes",
+                "link": "https://example.test/kilcarberygrange1",
+            },
+            {
+                "name": "Kilcarbery Grange",
+                "location": "Dublin - Clondalkin",
+                "address": "",
+                "price": "1295",
+                "quantity": "1",
+                "beds": "1",
+                "status": "closed",
+                "income_min": "",
+                "income_max": "",
+                "listed_at": "",
+                "open_on": "17/10/2025",
+                "close_on": "24/10/2025",
+                "source": "affordablehomes",
+                "link": "https://example.test/kilcarberygrange",
+            },
+        ]
+
+        schemes = build_schemes(rows)
+        enrich_scheme_sources(schemes, rows)
+
+        self.assertEqual(
+            [(source.source, source.link) for source in schemes[0].sources],
+            [("affordablehomes", "https://example.test/kilcarberygrange2")],
         )
 
     def test_report_issue_href_uses_default_ops_email(self):

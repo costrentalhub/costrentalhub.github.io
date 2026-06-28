@@ -169,9 +169,12 @@ def opening_soon_schemes(schemes: Iterable[Scheme]) -> list[Scheme]:
 
 
 def enrich_scheme_sources(schemes: list[Scheme], rows: Iterable[dict[str, str]]) -> None:
-    """Attach alternate source links from any CSV row with the same scheme name."""
+    """Attach alternate source links from active CSV rows with the same scheme name."""
     by_name: dict[str, list[SourceLink]] = {}
     for row in rows:
+        status = normalize_key(row.get("status"))
+        if status not in {"open", "opening soon"}:
+            continue
         name = normalize_key(row.get("name"))
         source = row.get("source", "").strip()
         link = row.get("link", "").strip()

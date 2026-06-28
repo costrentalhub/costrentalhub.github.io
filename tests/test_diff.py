@@ -79,7 +79,7 @@ class DiffDigestTests(unittest.TestCase):
         self._insert_listing(
             "new-today",
             status="open",
-            close_at="2026-06-17",
+            close_at="2030-06-17",
         )
         self.conn.execute(
             """
@@ -92,7 +92,7 @@ class DiffDigestTests(unittest.TestCase):
         self._insert_listing(
             "existing",
             status="open",
-            close_at="2026-06-20",
+            close_at="2030-06-20",
         )
         self.conn.commit()
 
@@ -102,6 +102,18 @@ class DiffDigestTests(unittest.TestCase):
             {item.listing_id: item.notification_type for item in apply_now},
             {"new-today": "new_open", "existing": "apply_now"},
         )
+
+    def test_apply_now_excludes_stale_open_with_past_close_date(self):
+        self._insert_listing(
+            "stale-open",
+            status="open",
+            close_at="2020-01-01",
+        )
+        self.conn.commit()
+
+        apply_now = diff.find_apply_now(self.conn)
+
+        self.assertEqual([], [item.listing_id for item in apply_now])
 
 
 if __name__ == "__main__":

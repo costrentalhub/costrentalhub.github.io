@@ -5,6 +5,7 @@ from typing import List
 import sqlite3
 
 from cost_rental_alerts.db import TZ, today_iso, was_notified
+from cost_rental_alerts.export_csv import resolve_export_status
 
 
 @dataclass
@@ -128,6 +129,12 @@ def find_apply_now(conn: sqlite3.Connection) -> List[NewsItem]:
     ).fetchall()
 
     for row in rows:
+        if resolve_export_status(
+            row["status"],
+            row["applications_open_at"],
+            row["applications_close_at"],
+        ) != "open":
+            continue
         if _is_new_application_today(row):
             first_seen_today = _is_today(row["first_seen_at"])
             status_changed_today = _is_today(row["status_changed_at"])
