@@ -305,6 +305,7 @@ class ExportSiteTests(unittest.TestCase):
         html = render_html([])
 
         self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr));", html)
+        self.assertIn(".summary-card {\n        padding: 16px;", html)
         self.assertIn(".quick-links a.report-link {\n        grid-column: 1 / -1;", html)
 
 
