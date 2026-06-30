@@ -938,8 +938,17 @@ def render_html(
       }}
       .updated {{ white-space: normal; }}
       .summary {{ grid-template-columns: 1fr; }}
-      .quick-links {{ justify-content: stretch; }}
-      .quick-links a {{ flex: 1 1 150px; }}
+      .quick-links {{
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        justify-content: stretch;
+      }}
+      .quick-links a {{
+        width: 100%;
+      }}
+      .quick-links a.report-link {{
+        grid-column: 1 / -1;
+      }}
     }}
     @media (max-width: 460px) {{
       .page {{

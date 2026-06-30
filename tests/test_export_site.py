@@ -301,6 +301,12 @@ class ExportSiteTests(unittest.TestCase):
             html,
         )
 
+    def test_mobile_top_links_use_two_columns(self):
+        html = render_html([])
+
+        self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr));", html)
+        self.assertIn(".quick-links a.report-link {\n        grid-column: 1 / -1;", html)
+
 
 if __name__ == "__main__":
     unittest.main()
