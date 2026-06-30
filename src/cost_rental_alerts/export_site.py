@@ -937,7 +937,21 @@ def render_html(
         grid-template-columns: 1fr;
       }}
       .updated {{ white-space: normal; }}
-      .summary {{ grid-template-columns: 1fr; }}
+      .summary {{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }}
+      .summary-card {{
+        padding: 16px;
+        border-radius: 20px;
+      }}
+      .summary-card span {{
+        font-size: 0.74rem;
+        letter-spacing: 0.06em;
+      }}
+      .summary-card strong {{
+        font-size: 2.2rem;
+      }}
       .quick-links {{
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
