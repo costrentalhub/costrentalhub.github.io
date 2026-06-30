@@ -6,6 +6,7 @@ from cost_rental_alerts.export_site import (
     build_schemes,
     enrich_scheme_sources,
     opening_soon_schemes,
+    render_html,
     report_issue_href,
     sort_source_links,
     SourceLink,
@@ -285,6 +286,20 @@ class ExportSiteTests(unittest.TestCase):
             href = report_issue_href(scheme_name="Kilcarbery Grange")
 
         self.assertIn("Kilcarbery%20Grange", href)
+
+    def test_mobile_card_details_use_compact_grid(self):
+        html = render_html([])
+
+        self.assertIn(
+            ".details {\n        grid-template-columns: repeat(6, minmax(0, 1fr));",
+            html,
+        )
+        self.assertIn(".detail:nth-child(1),", html)
+        self.assertIn(".detail:nth-child(3),", html)
+        self.assertNotIn(
+            ".scheme-grid,\n      .details {\n        grid-template-columns: 1fr;",
+            html,
+        )
 
 
 if __name__ == "__main__":

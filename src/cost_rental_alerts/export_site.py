@@ -946,9 +946,35 @@ def render_html(
         width: min(100% - 20px, 1180px);
         padding-top: 24px;
       }}
-      .scheme-grid,
-      .details {{
+      .scheme-grid {{
         grid-template-columns: 1fr;
+      }}
+      .details {{
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+      }}
+      .detail {{
+        min-width: 0;
+        padding: 9px;
+      }}
+      .detail:nth-child(1),
+      .detail:nth-child(2),
+      .detail:nth-child(6),
+      .detail:nth-child(7) {{
+        grid-column: span 3;
+      }}
+      .detail:nth-child(3),
+      .detail:nth-child(4),
+      .detail:nth-child(5) {{
+        grid-column: span 2;
+      }}
+      .detail dt {{
+        font-size: 0.62rem;
+        letter-spacing: 0.06em;
+      }}
+      .detail dd {{
+        font-size: 0.94rem;
+        overflow-wrap: anywhere;
       }}
       .scheme-card__header {{
         flex-direction: column;
