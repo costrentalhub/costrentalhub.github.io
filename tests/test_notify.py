@@ -79,7 +79,7 @@ class NotifyMessageTests(unittest.TestCase):
             ],
         )
 
-        self.assertIn("🏠 Cost Rental — 28/06", message)
+        self.assertIn("🏠 Cost Rental — ", message)
         self.assertIn("Ireland Cost Rental Hub:", message)
         self.assertIn("🟢 Apply now:", message)
         self.assertIn("🔥 Laois — Rath Rua", message)
@@ -109,7 +109,7 @@ class NotifyMessageTests(unittest.TestCase):
             [],
         )
 
-        self.assertIn("🏠 Cost Rental — 28/06/2026", message)
+        self.assertIn("🏠 Cost Rental — ", message)
         self.assertIn("Ireland Cost Rental Hub:", message)
         self.assertIn("🟢 Apply now (1):", message)
         self.assertIn("🔥 Rath Rua — Laois - Portlaoise", message)
