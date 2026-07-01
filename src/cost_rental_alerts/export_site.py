@@ -294,6 +294,13 @@ TEST_PHASE_NOTE = (
     "This app is in test phase. If you find inconsistencies, please use the Report "
     "button and we will work on fixing the problem."
 )
+SOURCE_PORTALS_NOTE = (
+    "Data comes from Affordable Homes Ireland, LDA and Tuath Housing. Other "
+    "cost-rental providers, including Clúid, Respond, Circle VHA, Co-operative "
+    "Housing Ireland, Oaklee, Ó Cualann and Fold Ireland, usually publish their "
+    "schemes through Affordable Homes Ireland, so they are covered there rather "
+    "than listed separately."
+)
 
 
 def render_scheme_card(scheme: Scheme, *, extra_badges: Iterable[str] = ()) -> str:
@@ -1012,7 +1019,7 @@ def render_html(
     <header class="hero">
       <div>
         <h1>{escape(HUB_TITLE)}</h1>
-        <p>Cost rental schemes in Ireland — apply now and opening soon. Updated daily from affordablehomes.ie, LDA, and Tuath Housing.</p>
+        <p>Cost rental schemes in Ireland — apply now and opening soon. Updated daily from cost rental portals {render_info_tip(SOURCE_PORTALS_NOTE)}.</p>
       </div>
       <div class="updated">Updated {escape(generated_label)}</div>
     </header>
