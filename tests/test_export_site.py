@@ -315,6 +315,26 @@ class ExportSiteTests(unittest.TestCase):
         self.assertNotIn("position: sticky", toolbar_css)
         self.assertNotIn("top: 0", toolbar_css)
 
+    def test_hero_source_text_uses_portals_tooltip(self):
+        html = render_html([])
+
+        self.assertIn("Updated daily from cost rental portals", html)
+        self.assertNotIn(
+            "Updated daily from affordablehomes.ie, LDA, and Tuath Housing",
+            html,
+        )
+        self.assertIn("Affordable Homes Ireland", html)
+        self.assertIn("LDA", html)
+        self.assertIn("Tuath Housing", html)
+        self.assertIn("Clúid", html)
+        self.assertIn("Respond", html)
+        self.assertIn("Circle VHA", html)
+        self.assertIn("Co-operative Housing Ireland", html)
+        self.assertIn("Oaklee", html)
+        self.assertIn("Ó Cualann", html)
+        self.assertIn("Fold Ireland", html)
+        self.assertNotIn("scrape", html.lower())
+
 
 if __name__ == "__main__":
     unittest.main()
