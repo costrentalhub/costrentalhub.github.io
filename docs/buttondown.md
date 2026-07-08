@@ -38,12 +38,13 @@ Use the `<form>` embed (not `<iframe>`) so the hub modal can match site styling.
 **Description:**
 Daily cost rental scheme alerts for Ireland. Apply now and opening soon listings from affordablehomes.ie, LDA, and Tuath Housing. Updated every morning.
 
-## Hub integration (planned)
+## Hub integration
 
-- Footer link: **Email alerts**
+- Footer link: **Email alerts** (opens modal)
 - Modal: **Get cost rental alerts**
+- Consent checkbox + double opt-in note
+- `localStorage` key `crh_email_alerts_dismissed` on **Not now** or successful submit
 - Pop-up on scroll/time: later, after public launch
-- Double opt-in: enabled in Buttondown
 
 ## Logo
 

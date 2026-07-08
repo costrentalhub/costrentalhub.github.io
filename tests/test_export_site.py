@@ -2,6 +2,9 @@ import unittest
 from unittest.mock import patch
 
 from cost_rental_alerts.export_site import (
+    BUTTONDOWN_SUBSCRIBE_URL,
+    SUBSCRIBE_DISMISS_STORAGE_KEY,
+    VIEW_MODE_STORAGE_KEY,
     apply_now_schemes,
     build_schemes,
     enrich_scheme_sources,
@@ -301,19 +304,22 @@ class ExportSiteTests(unittest.TestCase):
             html,
         )
 
-    def test_mobile_top_links_use_two_columns(self):
+    def test_mobile_hub_actions_use_three_columns(self):
         html = render_html([])
 
         self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr));", html)
         self.assertIn(".summary-card {\n        padding: 16px;", html)
-        self.assertIn(".quick-links a.report-link {\n        grid-column: 1 / -1;", html)
+        self.assertIn("grid-template-columns: repeat(3, minmax(0, 1fr));", html)
+        self.assertIn('class="hub-actions"', html)
 
-    def test_toolbar_is_not_sticky(self):
+    def test_hub_actions_replace_toolbar(self):
         html = render_html([])
-        toolbar_css = html.split(".toolbar {", 1)[1].split("}", 1)[0]
 
-        self.assertNotIn("position: sticky", toolbar_css)
-        self.assertNotIn("top: 0", toolbar_css)
+        self.assertNotIn('class="toolbar"', html)
+        self.assertNotIn("scheme-search", html)
+        self.assertNotIn("<footer>", html)
+        self.assertIn("data-open-about", html)
+        self.assertIn("About this hub", html)
 
     def test_hero_source_text_uses_portals_tooltip(self):
         html = render_html([])
@@ -334,6 +340,33 @@ class ExportSiteTests(unittest.TestCase):
         self.assertIn("Ó Cualann", html)
         self.assertIn("Fold Ireland", html)
         self.assertNotIn("scrape", html.lower())
+
+    def test_subscribe_modal_and_hub_actions(self):
+        html = render_html([])
+
+        self.assertIn("data-open-subscribe>\n    Email", html)
+        self.assertIn("Get cost rental alerts", html)
+        self.assertIn(BUTTONDOWN_SUBSCRIBE_URL, html)
+        self.assertIn('name="embed" value="1"', html)
+        self.assertIn("subscribe-consent", html)
+        self.assertIn("Affordable Homes Ireland", html)
+        self.assertIn("subscribe-not-now", html)
+        self.assertIn(SUBSCRIBE_DISMISS_STORAGE_KEY, html)
+        self.assertIn("data-open-subscribe", html)
+        self.assertIn("Help improve this", html)
+
+    def test_desktop_view_toggle_defaults_to_table(self):
+        html = render_html([])
+
+        self.assertIn('data-view="table"', html)
+        self.assertIn('class="view-toggle"', html)
+        self.assertIn('data-view-mode="table"', html)
+        self.assertIn('data-view-mode="cards"', html)
+        self.assertIn(VIEW_MODE_STORAGE_KEY, html)
+        self.assertIn(
+            '.scheme-section:not([data-view="cards"]) .scheme-table-wrap',
+            html,
+        )
 
 
 if __name__ == "__main__":

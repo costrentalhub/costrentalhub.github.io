@@ -279,6 +279,13 @@ def render_source_links(scheme: Scheme) -> str:
 
 
 HUB_TITLE = "Ireland Cost Rental Hub"
+BUTTONDOWN_USERNAME = "costrentalhub"
+BUTTONDOWN_SUBSCRIBE_URL = (
+    f"https://buttondown.com/api/emails/embed-subscribe/{BUTTONDOWN_USERNAME}"
+)
+NEWSLETTER_TITLE = "Ireland Cost Rental Alerts"
+SUBSCRIBE_DISMISS_STORAGE_KEY = "crh_email_alerts_dismissed"
+VIEW_MODE_STORAGE_KEY = "crh_scheme_view"
 
 
 def render_detail(label: str, value: str) -> str:
@@ -400,6 +407,124 @@ def render_scheme_table(
 """.strip()
 
 
+def render_hub_actions(*, issue_href: str) -> str:
+    return f"""
+<nav class="hub-actions" aria-label="Hub actions">
+  <button type="button" class="hub-action hub-action--primary" data-open-subscribe>
+    Email
+  </button>
+  <a class="hub-action" href="{escape(issue_href, quote=True)}">Report</a>
+  <button type="button" class="hub-action" data-open-about>About</button>
+</nav>
+""".strip()
+
+
+def render_about_modal(*, issue_href: str) -> str:
+    contact_email = escape(report_issue_email())
+    issue_link = escape(issue_href, quote=True)
+    return f"""
+<div class="about-modal" id="about-modal" hidden aria-hidden="true">
+  <div class="about-modal__backdrop" data-close-about></div>
+  <div
+    class="about-modal__panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="about-modal-title"
+  >
+    <button type="button" class="about-modal__close" data-close-about aria-label="Close">
+      &times;
+    </button>
+    <h2 id="about-modal-title">About this hub</h2>
+    <p class="about-modal__lede">
+      {escape(HUB_TITLE)} lists cost rental schemes you can apply for now, plus schemes
+      opening soon. Updated daily from Irish cost rental portals.
+    </p>
+    <section class="about-modal__section">
+      <h3>Data sources</h3>
+      <p>{escape(SOURCE_PORTALS_NOTE)}</p>
+    </section>
+    <section class="about-modal__section">
+      <h3>Test phase</h3>
+      <p>{escape(TEST_PHASE_NOTE)}</p>
+    </section>
+    <section class="about-modal__section">
+      <h3>Help improve this</h3>
+      <ul class="about-modal__list">
+        <li>Wrong details on a scheme? Use <strong>Report</strong> on that scheme&apos;s card.</li>
+        <li>Another problem? <a href="{issue_link}">Send a report</a>.</li>
+        <li>
+          Want to contribute?
+          <a href="mailto:{contact_email}">{contact_email}</a>.
+        </li>
+      </ul>
+    </section>
+    <button type="button" class="about-modal__done" data-close-about>Close</button>
+  </div>
+</div>
+""".strip()
+
+
+def render_subscribe_modal() -> str:
+    subscribe_url = escape(BUTTONDOWN_SUBSCRIBE_URL, quote=True)
+    return f"""
+<div class="subscribe-modal" id="subscribe-modal" hidden aria-hidden="true">
+  <div class="subscribe-modal__backdrop" data-close-subscribe></div>
+  <div
+    class="subscribe-modal__panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="subscribe-modal-title"
+  >
+    <button type="button" class="subscribe-modal__close" data-close-subscribe aria-label="Close">
+      &times;
+    </button>
+    <h2 id="subscribe-modal-title">Get cost rental alerts</h2>
+    <p class="subscribe-modal__lede">
+      One email each morning with cost rental schemes you can apply for now, plus schemes
+      opening soon. We check affordablehomes.ie, LDA, and Tuath Housing for you.{render_info_tip(SOURCE_PORTALS_NOTE)}
+    </p>
+    <form
+      id="subscribe-form"
+      class="subscribe-form"
+      action="{subscribe_url}"
+      method="post"
+      novalidate
+    >
+      <input type="hidden" name="embed" value="1">
+      <label class="subscribe-form__field" for="subscribe-email">Email</label>
+      <input
+        class="subscribe-form__input"
+        id="subscribe-email"
+        type="email"
+        name="email"
+        autocomplete="email"
+        placeholder="you@example.com"
+        required
+      >
+      <label class="subscribe-form__consent" for="subscribe-consent">
+        <input id="subscribe-consent" type="checkbox" name="consent" required>
+        <span>
+          I agree to receive daily {escape(NEWSLETTER_TITLE)} emails. You can unsubscribe at any time.
+        </span>
+      </label>
+      <p class="subscribe-form__note">
+        Double opt-in: we will send a confirmation email — click the link to finish subscribing.
+      </p>
+      <div class="subscribe-form__actions">
+        <button class="subscribe-form__submit" type="submit">Subscribe</button>
+        <button class="subscribe-form__dismiss" type="button" id="subscribe-not-now">Not now</button>
+      </div>
+      <p class="subscribe-form__error" id="subscribe-error" hidden></p>
+    </form>
+    <div class="subscribe-success" id="subscribe-success" hidden>
+      <p><strong>Almost there.</strong> Check your inbox and confirm your subscription.</p>
+      <button type="button" class="subscribe-form__submit" data-close-subscribe>Close</button>
+    </div>
+  </div>
+</div>
+""".strip()
+
+
 def render_info_tip(text: str) -> str:
     return (
         '<span class="info-tip" tabindex="0" role="button" aria-label="Section information">'
@@ -407,6 +532,25 @@ def render_info_tip(text: str) -> str:
         f'<span class="info-tip__popup">{escape(text)}</span>'
         "</span>"
     )
+
+
+def render_view_toggle() -> str:
+    return """
+<div class="view-toggle" role="group" aria-label="Layout">
+  <button
+    type="button"
+    class="view-toggle__btn is-active"
+    data-view-mode="table"
+    aria-pressed="true"
+  >Table</button>
+  <button
+    type="button"
+    class="view-toggle__btn"
+    data-view-mode="cards"
+    aria-pressed="false"
+  >Cards</button>
+</div>
+""".strip()
 
 
 def render_section(
@@ -425,12 +569,18 @@ def render_section(
     if not schemes:
         cards = f'<p class="empty-state">{escape(empty_message)}</p>'
     return f"""
-<section class="scheme-section" id="{escape(section_id, quote=True)}" data-section="{escape(section_id, quote=True)}">
+<section
+  class="scheme-section"
+  id="{escape(section_id, quote=True)}"
+  data-section="{escape(section_id, quote=True)}"
+  data-view="table"
+>
   <div class="section-heading">
     <div>
       <p class="eyebrow">{escape(fmt_count(len(schemes), "scheme"))}</p>
       <h2 class="section-title">{escape(title)}{render_info_tip(info_tip)}</h2>
     </div>
+    {render_view_toggle()}
   </div>
   <div class="scheme-grid scheme-grid--cards">
     {cards}
@@ -546,49 +696,41 @@ def render_html(
     }}
     .summary-card--apply strong {{ color: var(--green); }}
     .summary-card--opening strong {{ color: var(--brand); }}
-    .toolbar {{
+    .hub-actions {{
       margin: 26px 0;
-      padding: 12px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 12px;
-      background: rgba(245, 247, 251, 0.86);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--line);
-      border-radius: 22px;
-    }}
-    .search {{
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 13px 15px;
-      font: inherit;
-      color: var(--text);
-      background: var(--panel);
-    }}
-    .quick-links {{
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
-      justify-content: flex-end;
     }}
-    .quick-links a {{
+    .hub-action {{
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 48px;
-      padding: 0 14px;
-      border-radius: 15px;
-      background: var(--text);
-      color: #fff;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
       text-decoration: none;
+      font: inherit;
       font-weight: 700;
       font-size: 0.92rem;
+      cursor: pointer;
+      box-shadow: var(--shadow);
     }}
-    .quick-links a.report-link {{
-      background: #fff;
-      color: var(--text);
-      border: 1px solid var(--line);
+    .hub-action:hover {{
+      border-color: #cbd5e1;
+    }}
+    .hub-action--primary {{
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+    }}
+    .hub-action--primary:hover {{
+      background: var(--brand-dark);
+      border-color: var(--brand-dark);
+      color: #fff;
     }}
     .scheme-section {{
       margin-top: 34px;
@@ -596,6 +738,34 @@ def render_html(
     }}
     .section-heading {{
       margin-bottom: 16px;
+    }}
+    .view-toggle {{
+      display: none;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      flex-shrink: 0;
+    }}
+    .view-toggle__btn {{
+      min-height: 36px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+    }}
+    .view-toggle__btn.is-active {{
+      background: var(--text);
+      color: #fff;
+    }}
+    .view-toggle__btn:hover:not(.is-active) {{
+      color: var(--text);
     }}
     .section-title {{
       display: inline-flex;
@@ -771,11 +941,26 @@ def render_html(
       border: 0;
     }}
     @media (min-width: 960px) {{
-      .scheme-grid--cards {{
+      .section-heading {{
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+      }}
+      .view-toggle {{
+        display: inline-flex;
+      }}
+      .scheme-section:not([data-view="cards"]) .scheme-grid--cards {{
         display: none;
       }}
-      .scheme-table-wrap {{
+      .scheme-section:not([data-view="cards"]) .scheme-table-wrap {{
         display: block;
+      }}
+      .scheme-section[data-view="cards"] .scheme-grid--cards {{
+        display: grid;
+      }}
+      .scheme-section[data-view="cards"] .scheme-table-wrap {{
+        display: none;
       }}
     }}
     .scheme-card {{
@@ -906,37 +1091,206 @@ def render_html(
       color: var(--muted);
       background: rgba(255, 255, 255, 0.6);
     }}
-    .no-results {{
+    body.hub-modal-open {{
+      overflow: hidden;
+    }}
+    .subscribe-modal,
+    .about-modal {{
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }}
+    .subscribe-modal[hidden],
+    .about-modal[hidden] {{
       display: none;
-      margin-top: 20px;
-      padding: 18px;
-      border-radius: 18px;
+    }}
+    .subscribe-modal__backdrop,
+    .about-modal__backdrop {{
+      position: absolute;
+      inset: 0;
+      background: rgba(16, 32, 51, 0.45);
+      backdrop-filter: blur(4px);
+    }}
+    .subscribe-modal__panel,
+    .about-modal__panel {{
+      position: relative;
+      width: min(520px, 100%);
+      padding: 28px 24px 24px;
+      border-radius: 24px;
       border: 1px solid var(--line);
       background: var(--panel);
+      box-shadow: var(--shadow);
+    }}
+    .subscribe-modal__close,
+    .about-modal__close {{
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 12px;
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 1.4rem;
+      line-height: 1;
+      cursor: pointer;
+    }}
+    .subscribe-modal__close:hover,
+    .about-modal__close:hover {{
+      color: var(--text);
+      background: #eef2f7;
+    }}
+    .subscribe-modal__panel h2,
+    .about-modal__panel h2 {{
+      margin: 0 0 10px;
+      font-size: 1.45rem;
+      letter-spacing: -0.02em;
+    }}
+    .subscribe-modal__lede,
+    .about-modal__lede {{
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }}
+    .subscribe-modal__lede .info-tip {{
+      vertical-align: middle;
+      margin-left: 2px;
+    }}
+    .subscribe-modal__lede .info-tip__popup {{
+      width: min(300px, 82vw);
+    }}
+    .about-modal__section {{
+      margin-top: 18px;
+    }}
+    .about-modal__section h3 {{
+      margin: 0 0 8px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
       color: var(--muted);
     }}
-    .no-results.is-visible {{ display: block; }}
-    footer {{
-      margin-top: 48px;
-      display: flex;
-      justify-content: flex-end;
-    }}
-    .footer-link {{
-      display: inline-flex;
-      align-items: center;
-      min-height: 42px;
-      padding: 0 14px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: var(--panel);
-      color: var(--muted);
-      text-decoration: none;
-      font-weight: 700;
+    .about-modal__section p {{
+      margin: 0;
+      color: var(--text);
       font-size: 0.92rem;
+      line-height: 1.5;
+    }}
+    .about-modal__list {{
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--text);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }}
+    .about-modal__list li + li {{
+      margin-top: 8px;
+    }}
+    .about-modal__list a {{
+      color: var(--brand-dark);
+      font-weight: 700;
+    }}
+    .about-modal__done {{
+      margin-top: 22px;
+      min-height: 44px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--brand);
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }}
+    .about-modal__done:hover {{
+      background: var(--brand-dark);
+    }}
+    .subscribe-form__field {{
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }}
+    .subscribe-form__input {{
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+      margin-bottom: 14px;
+    }}
+    .subscribe-form__consent {{
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+      color: var(--text);
+      font-size: 0.9rem;
+      line-height: 1.4;
+      cursor: pointer;
+    }}
+    .subscribe-form__consent input {{
+      margin-top: 3px;
+      flex-shrink: 0;
+    }}
+    .subscribe-form__note {{
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }}
+    .subscribe-form__actions {{
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }}
+    .subscribe-form__submit,
+    .subscribe-form__dismiss {{
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }}
+    .subscribe-form__submit {{
+      border: 0;
+      background: var(--brand);
+      color: #fff;
+    }}
+    .subscribe-form__submit:hover {{
+      background: var(--brand-dark);
+    }}
+    .subscribe-form__submit:disabled {{
+      opacity: 0.65;
+      cursor: not-allowed;
+    }}
+    .subscribe-form__dismiss {{
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+    }}
+    .subscribe-form__error {{
+      margin: 12px 0 0;
+      color: var(--red);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }}
+    .subscribe-success p {{
+      margin: 0 0 16px;
+      color: var(--text);
+      line-height: 1.45;
     }}
     @media (max-width: 820px) {{
       .hero,
-      .toolbar,
       .section-heading {{
         grid-template-columns: 1fr;
       }}
@@ -956,16 +1310,12 @@ def render_html(
       .summary-card strong {{
         font-size: 2.2rem;
       }}
-      .quick-links {{
+      .hub-actions {{
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        justify-content: stretch;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }}
-      .quick-links a {{
+      .hub-action {{
         width: 100%;
-      }}
-      .quick-links a.report-link {{
-        grid-column: 1 / -1;
       }}
     }}
     @media (max-width: 460px) {{
@@ -1029,16 +1379,7 @@ def render_html(
       <div class="summary-card summary-card--opening"><span>🔵 Opening soon</span><strong>{len(opening_soon)}</strong></div>
     </section>
 
-    <nav class="toolbar" aria-label="Dashboard tools">
-      <input class="search" id="scheme-search" type="search" placeholder="Search by scheme, county, source, price, beds..." autocomplete="off">
-      <div class="quick-links">
-        <a href="#apply-now">🟢 Apply now</a>
-        <a href="#opening-soon">🔵 Opening soon</a>
-        <a class="report-link" href="{issue_href}">Report issue</a>
-      </div>
-    </nav>
-
-    <p class="no-results" id="no-results">No active schemes match that search.</p>
+    {render_hub_actions(issue_href=issue_href)}
 
     {render_section(
         "apply-now",
@@ -1063,38 +1404,167 @@ def render_html(
         empty_message="No schemes are opening soon right now.",
     )}
 
-    <footer>
-      <a class="footer-link" href="{issue_href}">Report issue</a>
-    </footer>
   </main>
 
+  {render_subscribe_modal()}
+  {render_about_modal(issue_href=issue_href)}
+
   <script>
-    const searchInput = document.getElementById("scheme-search");
-    const noResults = document.getElementById("no-results");
-    const searchableItems = Array.from(document.querySelectorAll(".scheme-card, .scheme-row"));
+    const SUBSCRIBE_DISMISS_KEY = {escape(SUBSCRIBE_DISMISS_STORAGE_KEY)!r};
+    const VIEW_MODE_STORAGE_KEY = {escape(VIEW_MODE_STORAGE_KEY)!r};
+    const DESKTOP_LAYOUT = window.matchMedia("(min-width: 960px)");
+    const subscribeModal = document.getElementById("subscribe-modal");
+    const subscribeForm = document.getElementById("subscribe-form");
+    const subscribeSuccess = document.getElementById("subscribe-success");
+    const subscribeError = document.getElementById("subscribe-error");
+    const subscribeNotNow = document.getElementById("subscribe-not-now");
+    const aboutModal = document.getElementById("about-modal");
 
-    function applySearch() {{
-      const query = searchInput.value.trim().toLowerCase();
-      let visible = 0;
-      searchableItems.forEach((item) => {{
-        const matches = !query || item.dataset.search.includes(query);
-        item.hidden = !matches;
-        if (matches) visible += 1;
-      }});
-
-      document.querySelectorAll(".scheme-section").forEach((section) => {{
-        const sectionItems = Array.from(
-          section.querySelectorAll(".scheme-card, .scheme-row")
-        );
-        const hasVisibleItems = sectionItems.some((item) => !item.hidden);
-        const hasRealItems = sectionItems.length > 0;
-        section.hidden = hasRealItems && !hasVisibleItems && query.length > 0;
-      }});
-
-      noResults.classList.toggle("is-visible", visible === 0 && query.length > 0);
+    function openSubscribeModal() {{
+      subscribeModal.hidden = false;
+      subscribeModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("hub-modal-open");
+      const emailInput = document.getElementById("subscribe-email");
+      if (emailInput) emailInput.focus();
     }}
 
-    searchInput.addEventListener("input", applySearch);
+    function closeSubscribeModal() {{
+      subscribeModal.hidden = true;
+      subscribeModal.setAttribute("aria-hidden", "true");
+      if (aboutModal.hidden) {{
+        document.body.classList.remove("hub-modal-open");
+      }}
+    }}
+
+    function openAboutModal() {{
+      aboutModal.hidden = false;
+      aboutModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("hub-modal-open");
+    }}
+
+    function closeAboutModal() {{
+      aboutModal.hidden = true;
+      aboutModal.setAttribute("aria-hidden", "true");
+      if (subscribeModal.hidden) {{
+        document.body.classList.remove("hub-modal-open");
+      }}
+    }}
+
+    function dismissSubscribePrompt() {{
+      try {{
+        localStorage.setItem(SUBSCRIBE_DISMISS_KEY, "1");
+      }} catch (error) {{
+        // Ignore private browsing storage errors.
+      }}
+      closeSubscribeModal();
+    }}
+
+    document.querySelectorAll("[data-open-subscribe]").forEach((button) => {{
+      button.addEventListener("click", (event) => {{
+        event.preventDefault();
+        openSubscribeModal();
+      }});
+    }});
+
+    document.querySelectorAll("[data-open-about]").forEach((button) => {{
+      button.addEventListener("click", (event) => {{
+        event.preventDefault();
+        openAboutModal();
+      }});
+    }});
+
+    document.querySelectorAll("[data-close-subscribe]").forEach((button) => {{
+      button.addEventListener("click", closeSubscribeModal);
+    }});
+
+    document.querySelectorAll("[data-close-about]").forEach((button) => {{
+      button.addEventListener("click", closeAboutModal);
+    }});
+
+    subscribeNotNow.addEventListener("click", dismissSubscribePrompt);
+
+    subscribeForm.addEventListener("submit", async (event) => {{
+      event.preventDefault();
+      subscribeError.hidden = true;
+      subscribeError.textContent = "";
+
+      if (!subscribeForm.reportValidity()) {{
+        return;
+      }}
+
+      const submitButton = subscribeForm.querySelector('button[type="submit"]');
+      const email = new FormData(subscribeForm).get("email");
+      submitButton.disabled = true;
+
+      try {{
+        await fetch(subscribeForm.action, {{
+          method: "POST",
+          body: new URLSearchParams({{ email: String(email || ""), embed: "1" }}),
+          mode: "no-cors",
+        }});
+        subscribeForm.hidden = true;
+        subscribeSuccess.hidden = false;
+        try {{
+          localStorage.setItem(SUBSCRIBE_DISMISS_KEY, "1");
+        }} catch (storageError) {{
+          // Ignore private browsing storage errors.
+        }}
+      }} catch (error) {{
+        subscribeError.hidden = false;
+        subscribeError.textContent = "Could not subscribe right now. Please try again.";
+        submitButton.disabled = false;
+      }}
+    }});
+
+    document.addEventListener("keydown", (event) => {{
+      if (event.key === "Escape") {{
+        if (!subscribeModal.hidden) closeSubscribeModal();
+        if (!aboutModal.hidden) closeAboutModal();
+      }}
+    }});
+
+    function applyViewMode(mode) {{
+      document.querySelectorAll(".scheme-section").forEach((section) => {{
+        section.dataset.view = mode;
+        const toggle = section.querySelector(".view-toggle");
+        if (!toggle) return;
+        toggle.querySelectorAll(".view-toggle__btn").forEach((button) => {{
+          const active = button.dataset.viewMode === mode;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-pressed", active ? "true" : "false");
+        }});
+      }});
+      if (DESKTOP_LAYOUT.matches) {{
+        try {{
+          localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+        }} catch (error) {{
+          // Ignore private browsing storage errors.
+        }}
+      }}
+    }}
+
+    function initViewToggles() {{
+      let mode = "table";
+      try {{
+        const stored = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+        if (stored === "table" || stored === "cards") {{
+          mode = stored;
+        }}
+      }} catch (error) {{
+        // Ignore private browsing storage errors.
+      }}
+      applyViewMode(mode);
+
+      document.querySelectorAll(".view-toggle").forEach((toggle) => {{
+        toggle.addEventListener("click", (event) => {{
+          const button = event.target.closest(".view-toggle__btn");
+          if (!button) return;
+          applyViewMode(button.dataset.viewMode);
+        }});
+      }});
+    }}
+
+    initViewToggles();
   </script>
 </body>
 </html>
