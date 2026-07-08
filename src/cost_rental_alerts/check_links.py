@@ -17,6 +17,8 @@ from cost_rental_alerts.paths import DATA_DIR
 CSV_PATH = DATA_DIR / "listings-export.csv"
 ACTIVE_STATUSES = {"open", "opening soon"}
 USER_AGENT = "CostRentalAlerts-LinkCheck/1.0"
+# Tuath returns 403 from datacenter IPs (e.g. GitHub Actions) while links work in a browser.
+SKIP_LINK_CHECK_SOURCES = frozenset({"tuath"})
 
 
 @dataclass
@@ -41,6 +43,8 @@ def active_scheme_links(csv_path: Path = CSV_PATH) -> list[tuple[str, str, str]]
             name = (row.get("name") or "").strip()
             source = (row.get("source") or "").strip()
             url = (row.get("link") or "").strip()
+            if source.casefold() in SKIP_LINK_CHECK_SOURCES:
+                continue
             if not url:
                 continue
             key = (source, url)

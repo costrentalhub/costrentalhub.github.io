@@ -45,6 +45,13 @@ class SourceResult:
     open_samples: list[Listing] = field(default_factory=list)
 
 
+def _should_alert_scrape_failure(result: SourceResult) -> bool:
+    """Tuath blocks GitHub Actions IPs (403) while the site works in a browser."""
+    if result.name == "tuath" and result.error and "403" in result.error:
+        return False
+    return True
+
+
 def scrape_sources() -> tuple[list[Listing], list[SourceResult]]:
     listings: list[Listing] = []
     results: list[SourceResult] = []
@@ -114,7 +121,11 @@ def main() -> int:
     normalize_listing_statuses(listings)
     upsert_listings(conn, listings)
 
-    failed_sources = [result for result in source_results if not result.ok]
+    failed_sources = [
+        result
+        for result in source_results
+        if not result.ok and _should_alert_scrape_failure(result)
+    ]
     if failed_sources and not args.dry_run:
         send_ops_alert(format_scrape_failure_alert(failed_sources))
 

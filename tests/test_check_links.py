@@ -30,6 +30,25 @@ Soon Scheme,opening soon,affordablehomes,https://example.test/soon
             ],
         )
 
+    def test_active_scheme_links_skips_tuath(self):
+        csv_text = """name,status,source,link
+Folkstown Park,open,tuath,https://tuathhousing.ie/properties/folkstown-park-2/
+Open Scheme,open,affordablehomes,https://example.test/open
+"""
+        with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False) as handle:
+            handle.write(csv_text)
+            csv_path = Path(handle.name)
+
+        try:
+            links = active_scheme_links(csv_path)
+        finally:
+            csv_path.unlink()
+
+        self.assertEqual(
+            links,
+            [("Open Scheme", "affordablehomes", "https://example.test/open")],
+        )
+
     def test_find_broken_links_reports_http_errors(self):
         rows = [
             ("Broken", "tuath", "https://example.test/broken"),
