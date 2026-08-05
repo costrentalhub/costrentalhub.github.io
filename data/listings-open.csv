@@ -1,3 +1,5 @@
 name,location,address,price,quantity,beds,status,income_min,income_max,listed_at,open_on,close_on,source,link
 Carrigmore Woods,Dublin - Citywest,"Carrigmore Woods, Citywest, Co. Dublin, Ireland",1395,1,1,open,,,30/07/2026,31/07/2026,07/08/2026,affordablehomes,https://affordablehomes.ie/rent/carrigmorewoods3/
 "Cookstown Gateway, Cookstown, Dublin 24",Dublin - D24 Cookstown,"Cookstown Gateway, Cookstown, Dublin 24, Ireland",1225,1,1,open,42000,66000,,,06/08/2026,lda,https://lda.ie/affordable-homes/lda-cost-rental/cookstown-gateway-cookstown-dublin-24-5
+Stoneview,Dublin - Walkinstown,"Stoneview, Walkinstown, Co. Dublin, Ireland",1670,1,1,open,,,30/07/2026,05/08/2026,12/08/2026,affordablehomes,https://affordablehomes.ie/rent/stoneview1/
+Stoneview,Ireland - Stoneview,"Stoneview, Ireland",1670,,1-2,open,,,,05/08/2026,,cluid,https://www.cluid.ie/property/stoneview-aug26/
