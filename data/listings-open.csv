@@ -1,11 +1,8 @@
 name,location,address,price,quantity,beds,status,income_min,income_max,listed_at,open_on,close_on,source,link
-"Airton Plaza, Belgard Road, Dublin 24",Dublin - D24 Airton Plaza,"Airton Plaza, Belgard Road, Dublin 24, Ireland",1780,,1-2,open,,,,,,cluid,https://www.cluid.ie/property/airton-plaza-tallaght-aug26/
 An Cnocan,Cork - Bantry,"An Cnocan, Milleencoola, Bantry, Co. Cork, Ireland",1117,1,3,open,,,10/08/2026,17/08/2026,31/08/2026,affordablehomes,https://affordablehomes.ie/rent/ancnocan1/
+"Cooper Square, Seven Mills, Dublin 22 - Phase 5",Dublin - D22 Seven Mills,"Cooper Square, Seven Mills, Dublin 22 - Phase 5, Ireland",1600,1,2,open,54857,66000,,,03/09/2026,lda,https://lda.ie/homes/lda-cost-rental/cooper-square-seven-mills-dublin-22-phase-5
 "Grange Oaks, Kilternan, Dublin 18",Dublin - D18 Kilternan Dublin 18,"Grange Oaks, Kilternan Dublin 18, Co. Dublin, Ireland",1395,57,1-2,closed,,,04/08/2026,05/08/2026,19/08/2026,affordablehomes,https://affordablehomes.ie/rent/grange/
 Hearthfield,Louth - Dundalk,"Hearthfield, Mount Avenue, Dundalk, Co. Louth, Ireland",1122,24,2-3,open,,,10/08/2026,12/08/2026,,affordablehomes,https://affordablehomes.ie/rent/hearthfield/
 Kilmartin Grove,Dublin - Hollystown,"Kilmartin Grove, Hollystown, Co. Dublin, Ireland",1268,1,1,closed,,,13/08/2026,13/08/2026,20/08/2026,affordablehomes,https://affordablehomes.ie/rent/kilmartingrove5/
-Longview,Ireland - Longview,"Longview, Ireland",59000,,1-2,open,,,,,,cluid,https://www.cluid.ie/property/longview-aug26/
-Newton Heights,Ireland - Newton Heights,"Newton Heights, Ireland",1500,,1-2,open,,,,,,cluid,https://www.cluid.ie/property/newton-heights-aug26/
 Rathborne Wharf,Ireland,"Rathborne Wharf, Ireland",1350,,1-3,open,,,,,28/08/2026,respond,https://www.respond.ie/properties/rathborne-wharf/
-The Paddocks,Ireland - The Paddocks,"The Paddocks, Ireland",1351,,1-2,open,,,,,,cluid,https://www.cluid.ie/property/the-paddocks-aug26/
 The Sidings Adamstown,Ireland - The Sidings Adamstown,"The Sidings Adamstown, Ireland",,,,open,,,,,,oaklee,https://oaklee.ie/case-studies/the-sidings-admastown
