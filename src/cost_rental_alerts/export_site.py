@@ -430,11 +430,10 @@ TEST_PHASE_NOTE = (
     "button and we will work on fixing the problem."
 )
 SOURCE_PORTALS_NOTE = (
-    "Data comes from Affordable Homes Ireland, LDA and Tuath Housing. Other "
-    "cost-rental providers, including Clúid, Respond, Circle VHA, Co-operative "
-    "Housing Ireland, Oaklee, Ó Cualann and Fold Ireland, usually publish their "
-    "schemes through Affordable Homes Ireland, so they are covered there rather "
-    "than listed separately."
+    "We check Affordable Homes Ireland, LDA, Tuath Housing, Respond, Clúid, "
+    "Circle VHA and Oaklee every day. Co-operative Housing Ireland is monitored "
+    "for any future cost rental listings. Some providers, including Ó Cualann "
+    "and Fold Ireland, may still publish mainly through Affordable Homes Ireland."
 )
 
 
@@ -590,8 +589,9 @@ def render_about_modal(*, issue_href: str) -> str:
       <section class="about-modal__section">
         <h3 data-i18n="about.how.title">How it works</h3>
         <p data-i18n="about.how.body">
-          We check affordablehomes.ie, LDA and Tuath Housing every morning, merge the
-          results, and publish updates here and by email.
+          We check Affordable Homes Ireland, LDA, Tuath, Respond, Clúid, Circle VHA
+          and Oaklee every morning, merge the results, and publish updates here and
+          by email.
         </p>
       </section>
       <section class="about-modal__section">
@@ -664,8 +664,10 @@ def render_cost_rental_modal() -> str:
       <section class="cost-rental-modal__section">
         <h3 data-i18n="cost_rental.who.title">Who provides it</h3>
         <p data-i18n="cost_rental.who.body">
-          Schemes are run by approved Irish housing bodies and public agencies, including
-          Clúid, LDA and Tuath Housing. Many others publish through Affordable Homes Ireland.
+          Schemes are run by approved Irish housing bodies and public agencies —
+          including Clúid, Respond, Circle VHA, Oaklee, Tuath, LDA and Affordable
+          Homes Ireland. We also watch Co-operative Housing Ireland. Others such as
+          Ó Cualann and Fold Ireland often appear via Affordable Homes Ireland.
         </p>
       </section>
       <section class="cost-rental-modal__section">
@@ -679,9 +681,9 @@ def render_cost_rental_modal() -> str:
       <section class="cost-rental-modal__section">
         <h3 data-i18n="cost_rental.apply.title">How to apply</h3>
         <p data-i18n="cost_rental.apply.body">
-          When a scheme is open, apply through the provider&apos;s portal — affordablehomes.ie,
-          LDA or Tuath Housing. This hub shows what is open now and opening soon so you
-          do not miss a window.
+          When a scheme is open, apply through the provider&apos;s portal using the Apply
+          now links on this hub. We list opens from Affordable Homes, LDA, Tuath,
+          Respond and other AHB sites so you do not miss a window.
         </p>
       </section>
     </div>
@@ -722,7 +724,8 @@ def render_subscribe_modal() -> str:
       </p>
       <p class="subscribe-modal__lede-line">
         <span data-i18n="subscribe.lede_line2">
-          We check affordablehomes.ie, LDA, and Tuath Housing for you.
+          We check the main cost rental portals for you — including Affordable Homes,
+          LDA, Tuath, Respond, Clúid, Circle and Oaklee.
         </span>{render_info_tip("tip.sources")}
       </p>
     </div>
@@ -1288,6 +1291,12 @@ def render_html(
       line-height: 1.35;
       max-width: 240px;
     }}
+    .table-links {{
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }}
     .table-links .source-link {{
       min-height: 32px;
       padding: 0 10px;
@@ -1447,7 +1456,7 @@ def render_html(
     .source-links {{
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
     }}
     .scheme-card__footer {{
       display: flex;

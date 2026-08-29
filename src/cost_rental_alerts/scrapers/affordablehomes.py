@@ -221,6 +221,32 @@ def _resolve_calendar_dates(
     return None, None
 
 
+def _listing_slug(article) -> str | None:
+    title_link = article.select_one("h3 a")
+    if title_link:
+        href = title_link.get("href", "").strip("/")
+        if href:
+            return href.split("/")[-1]
+
+    button = article.select_one("footer a.button[href]")
+    if button:
+        href = button.get("href", "").strip("/")
+        if href:
+            return href.split("/")[-1]
+
+    return None
+
+
+def _listing_title(article) -> str | None:
+    h3 = article.select_one("h3")
+    if not h3:
+        return None
+    link = h3.select_one("a")
+    if link:
+        return link.get_text(strip=True)
+    return h3.get_text(strip=True)
+
+
 def _parse_listing_page(html: str) -> List[Listing]:
     soup = BeautifulSoup(html, "html.parser")
     listings: List[Listing] = []
@@ -229,12 +255,11 @@ def _parse_listing_page(html: str) -> List[Listing]:
         classes = article.get("class", [])
         status = "open" if "open" in classes else "closed" if "closed" in classes else "unknown"
 
-        title_link = article.select_one("h3 a")
-        if not title_link:
+        slug = _listing_slug(article)
+        title = _listing_title(article)
+        if not slug or not title:
             continue
 
-        slug = title_link.get("href", "").strip("/")
-        title = title_link.get_text(strip=True)
         url = urljoin(RENT_URL, slug + "/")
 
         price_el = article.select_one("p.price")
@@ -303,10 +328,68 @@ def _parse_portal_dates(html: str) -> Tuple[str | None, str | None]:
         return None, None
 
 
+def _detail_status(soup: BeautifulSoup) -> str | None:
+    """Read the visible portal status from page text (ignore map widget attributes)."""
+    text = soup.get_text(" ", strip=True)
+    if re.search(r"\bApplications\s+Closed\b", text, re.IGNORECASE):
+        return "closed"
+    if re.search(r"\bApplications\s+Open\b", text, re.IGNORECASE):
+        return "open"
+    if re.search(r"\bApply\s+Now\b", text, re.IGNORECASE):
+        return "open"
+    return None
+
+
+def _parse_close_at(html: str) -> str | None:
+    close_match = re.search(
+        r"Applications\s+Close:?\s*(\d{1,2})\s+(\w+)\s+(\d{4})",
+        html,
+        re.IGNORECASE,
+    )
+    if close_match:
+        day, month_name, year = close_match.groups()
+        try:
+            month = datetime.strptime(month_name[:3], "%b").month
+            return f"{year}-{month:02d}-{int(day):02d}"
+        except ValueError:
+            pass
+
+    close_match = re.search(
+        r"Applications Close:.*?(\d{1,2})\s+(\w+)\s+(\d{4})",
+        html,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if close_match:
+        day, month_name, year = close_match.groups()
+        try:
+            month = datetime.strptime(month_name[:3], "%b").month
+            return f"{year}-{month:02d}-{int(day):02d}"
+        except ValueError:
+            pass
+
+    closing_match = re.search(
+        r"application closing date is\s+"
+        r"(?:\w+day,\s*)?(\d{1,2})\s+(\w+)"
+        r"(?:\s+at\b|[.<]|$)",
+        html,
+        re.IGNORECASE,
+    )
+    if closing_match:
+        day, month_name = closing_match.groups()
+        try:
+            month = datetime.strptime(month_name[:3], "%b").month
+            year = datetime.now().year
+            return f"{year}-{month:02d}-{int(day):02d}"
+        except ValueError:
+            pass
+
+    return None
+
+
 def _parse_detail(
     html: str,
-) -> tuple[str | None, int | None, str | None, str | None, str | None]:
-    """Return (bedrooms, quantity, open_at, close_at, detail location)."""
+) -> tuple[str | None, int | None, str | None, str | None, str | None, str | None]:
+    """Return (bedrooms, quantity, open_at, close_at, detail location, status)."""
     soup = BeautifulSoup(html, "html.parser")
 
     bedrooms = None
@@ -320,33 +403,21 @@ def _parse_detail(
         quantity = parse_quantity(raw_qty)
 
     detail_location = _detail_field(soup, "Location")
+    status = _detail_status(soup)
 
     portal_open, portal_close = _parse_portal_dates(html)
     if portal_open or portal_close:
-        return bedrooms, quantity, portal_open, portal_close, detail_location
+        return bedrooms, quantity, portal_open, portal_close, detail_location, status
 
-    close_match = re.search(
-        r"Applications Close:.*?(\d{1,2})\s+(\w+)\s+(\d{4})",
-        html,
-        re.IGNORECASE | re.DOTALL,
-    )
-    close_at = None
-    if close_match:
-        day, month_name, year = close_match.groups()
-        try:
-            month = datetime.strptime(month_name[:3], "%b").month
-            close_at = f"{year}-{month:02d}-{int(day):02d}"
-        except ValueError:
-            pass
-
-    return bedrooms, quantity, None, close_at, detail_location
+    close_at = _parse_close_at(html)
+    return bedrooms, quantity, None, close_at, detail_location, status
 
 
 def _enrich_listings(listings: List[Listing]) -> None:
     for listing in listings:
         try:
             detail_html = fetch(listing.url)
-            bedrooms, quantity, open_at, close_at, detail_location = _parse_detail(
+            bedrooms, quantity, open_at, close_at, detail_location, status = _parse_detail(
                 detail_html
             )
             listing.bedrooms = bedrooms
@@ -361,6 +432,8 @@ def _enrich_listings(listings: List[Listing]) -> None:
                 listing.applications_open_at = open_at
             if close_at:
                 listing.applications_close_at = close_at
+            if status:
+                listing.status = status
         except Exception:
             continue
 

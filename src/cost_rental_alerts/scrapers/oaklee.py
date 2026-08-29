@@ -13,6 +13,7 @@ from cost_rental_alerts.models import Listing
 from cost_rental_alerts.scrapers.common import bedrooms_range, fetch, parse_bed_count, parse_price
 
 OAKLEE_URL = "https://oaklee.ie/become-a-resident/cost-rental-housing"
+SKIP_PATH_MARKERS = ("/case-studies/", "/about", "/development/", "/careers")
 
 
 def _slug_from_url(url: str) -> str:
@@ -33,9 +34,11 @@ def scrape_oaklee() -> list[Listing]:
 
     for a in soup.select("a[href]"):
         href = urljoin(OAKLEE_URL, a.get("href", ""))
+        if any(marker in href for marker in SKIP_PATH_MARKERS):
+            continue
         label = a.get_text(" ", strip=True)
         blob = f"{label} {href}".lower()
-        if not any(token in blob for token in ("sidings", "keyholder", "cost-rental", "cost rental")):
+        if not any(token in blob for token in ("keyholder", "cost-rental", "cost rental")):
             continue
         if "how-to-apply" in href or href.rstrip("/").endswith("cost-rental-housing"):
             continue

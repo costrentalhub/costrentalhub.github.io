@@ -339,13 +339,15 @@ class ExportSiteTests(unittest.TestCase):
         self.assertIn("Affordable Homes Ireland", html)
         self.assertIn("LDA", html)
         self.assertIn("Tuath Housing", html)
-        self.assertIn("Clúid", html)
         self.assertIn("Respond", html)
+        self.assertIn("Clúid", html)
         self.assertIn("Circle VHA", html)
-        self.assertIn("Co-operative Housing Ireland", html)
         self.assertIn("Oaklee", html)
+        self.assertIn("Co-operative Housing Ireland", html)
         self.assertIn("Ó Cualann", html)
         self.assertIn("Fold Ireland", html)
+        self.assertIn("We check Affordable Homes Ireland, LDA, Tuath Housing, Respond", html)
+        self.assertNotIn("usually publish their schemes through Affordable Homes Ireland", html)
         self.assertNotIn("scrape", html.lower())
 
     def test_subscribe_modal_and_hub_actions(self):

@@ -126,6 +126,67 @@ def listing_from_row(row: sqlite3.Row) -> Listing:
     )
 
 
+def close_unseen_open_listings(
+    conn: sqlite3.Connection,
+    source: str,
+    seen_ids: set[str] | frozenset[str],
+) -> int:
+    """Close open rent listings from a source that were missing from the latest scrape."""
+    if not seen_ids:
+        return 0
+
+    placeholders = ", ".join("?" for _ in seen_ids)
+    rows = conn.execute(
+        f"""
+        SELECT id FROM listings
+        WHERE source = ?
+          AND category = 'rent'
+          AND status = 'open'
+          AND id NOT IN ({placeholders})
+        """,
+        (source, *sorted(seen_ids)),
+    ).fetchall()
+    if not rows:
+        return 0
+
+    ts = now_iso()
+    for row in rows:
+        conn.execute(
+            """
+            UPDATE listings
+            SET status = 'closed', status_changed_at = ?
+            WHERE id = ?
+            """,
+            (ts, row["id"]),
+        )
+    return len(rows)
+
+
+def close_all_open_for_source(conn: sqlite3.Connection, source: str) -> int:
+    """Close every open rent listing for a source (e.g. Oaklee empty-state page)."""
+    rows = conn.execute(
+        """
+        SELECT id FROM listings
+        WHERE source = ? AND category = 'rent' AND status = 'open'
+        """,
+        (source,),
+    ).fetchall()
+    if not rows:
+        return 0
+
+    ts = now_iso()
+    for row in rows:
+        conn.execute(
+            """
+            UPDATE listings
+            SET status = 'closed', status_changed_at = ?
+            WHERE id = ?
+            """,
+            (ts, row["id"]),
+        )
+    return len(rows)
+
+
 def persist_listing_closed(conn: sqlite3.Connection, listing: Listing) -> None:
     ts = now_iso()
     existing = get_listing(conn, listing.id)
@@ -268,6 +329,40 @@ def upsert_listings(conn: sqlite3.Connection, listings: Iterable[Listing]) -> No
             ),
         )
     conn.commit()
+
+
+SOURCES_CLOSE_ALL_WHEN_EMPTY = frozenset({"oaklee"})
+
+
+def reconcile_stale_source_listings(
+    conn: sqlite3.Connection,
+    *,
+    successful_sources: set[str],
+    listings_by_source: dict[str, set[str]],
+) -> dict[str, int]:
+    """
+    Close open DB rows that disappeared from a successful source scrape.
+
+    Failed scrapes (e.g. Tuath 403) are left untouched. Sources in
+    SOURCES_CLOSE_ALL_WHEN_EMPTY close all open rows when the scrape returns
+    zero listings but still succeeded.
+    """
+    closed_by_source: dict[str, int] = {}
+
+    for source in successful_sources:
+        seen_ids = listings_by_source.get(source, set())
+        if seen_ids:
+            closed = close_unseen_open_listings(conn, source, seen_ids)
+        elif source in SOURCES_CLOSE_ALL_WHEN_EMPTY:
+            closed = close_all_open_for_source(conn, source)
+        else:
+            closed = 0
+        if closed:
+            closed_by_source[source] = closed
+
+    if closed_by_source:
+        conn.commit()
+    return closed_by_source
 
 
 def was_notified(conn: sqlite3.Connection, listing_id: str, notification_type: str) -> bool:

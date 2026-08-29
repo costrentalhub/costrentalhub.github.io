@@ -5,7 +5,15 @@ import sys
 import traceback
 from dataclasses import dataclass, field
 
-from cost_rental_alerts.db import connect, get_meta, init_db, mark_notified, set_meta, upsert_listings
+from cost_rental_alerts.db import (
+    connect,
+    get_meta,
+    init_db,
+    mark_notified,
+    reconcile_stale_source_listings,
+    set_meta,
+    upsert_listings,
+)
 from cost_rental_alerts.diff import find_apply_now, find_news, find_opening_soon
 from cost_rental_alerts.export_csv import resolve_export_status
 from cost_rental_alerts.models import Listing
@@ -146,11 +154,31 @@ def main() -> int:
     if closed_stale:
         print(f"[db] Closed {closed_stale} stale open secondary-source row(s) from AH data")
 
+    listings_by_source: dict[str, set[str]] = {}
+    for listing in listings:
+        listings_by_source.setdefault(listing.source, set()).add(listing.id)
+    successful_sources = {result.name for result in source_results if result.ok}
+    reconciled = reconcile_stale_source_listings(
+        conn,
+        successful_sources=successful_sources,
+        listings_by_source=listings_by_source,
+    )
+    for source, count in sorted(reconciled.items()):
+        print(f"[db] Closed {count} stale open row(s) no longer listed on {source}")
+
+    suspicious_sources = [
+        result
+        for result in source_results
+        if result.ok and result.name == "affordablehomes" and result.count == 0
+    ]
     failed_sources = [
         result
         for result in source_results
         if not result.ok and _should_alert_scrape_failure(result)
     ]
+    failed_sources.extend(suspicious_sources)
+    for result in suspicious_sources:
+        result.error = "0 listings returned — portal scrape may be broken"
     if failed_sources and not args.dry_run:
         send_ops_alert(format_scrape_failure_alert(failed_sources))
 

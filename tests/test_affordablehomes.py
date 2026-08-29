@@ -4,6 +4,7 @@ from datetime import date
 from cost_rental_alerts.models import Listing
 from cost_rental_alerts.scrapers.affordablehomes import (
     _calendar_events,
+    _parse_listing_page,
     _resolve_calendar_dates,
 )
 
@@ -67,6 +68,31 @@ class AffordableHomesCalendarTests(unittest.TestCase):
         events = _calendar_events(html)
 
         self.assertEqual(events["mountneil1"]["closed"], (6, 11))
+
+    def test_parse_listing_page_reads_new_portal_cards(self):
+        html = """
+        <article class="property open df oh pr">
+          <h3>Ballycomyn, Blessington</h3>
+          <p class="price fwm">Prices starting from €1,087</p>
+          <p class="status fwb mz pa ttu">Applications Open</p>
+          <p class="df location fwm"><span>Blessington, Co. Wicklow</span></p>
+          <footer>
+            <p class="link mz"><a class="button" href="blessingtondemesne/">Read More</a></p>
+            <p class="date fsi">Listed: 25/08/2026</p>
+          </footer>
+        </article>
+        """
+
+        listings = _parse_listing_page(html)
+
+        self.assertEqual(len(listings), 1)
+        self.assertEqual(listings[0].title, "Ballycomyn, Blessington")
+        self.assertEqual(listings[0].id, "affordablehomes:blessingtondemesne")
+        self.assertEqual(listings[0].status, "open")
+        self.assertEqual(
+            listings[0].url,
+            "https://affordablehomes.ie/rent/blessingtondemesne/",
+        )
 
 
 if __name__ == "__main__":
