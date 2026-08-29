@@ -82,7 +82,7 @@ def scrape_sources() -> tuple[list[Listing], list[SourceResult]]:
     results: list[SourceResult] = []
 
     for name, label, scraper in [
-        ("affordablehomes", "affordablehomes.ie", scrape_affordablehomes),
+        ("affordablehomes", "newstarterhomes.ie", scrape_affordablehomes),
         ("lda", "lda.ie", scrape_lda),
         ("tuath", "tuathhousing.ie", scrape_tuath),
         ("respond", "respond.ie", scrape_respond),

@@ -18,6 +18,7 @@ from zoneinfo import ZoneInfo
 from cost_rental_alerts.hub_i18n import LANGUAGE_STORAGE_KEY, TRANSLATIONS, translations_json
 from cost_rental_alerts.notify import report_issue_email, scheme_hub_url
 from cost_rental_alerts.paths import DATA_DIR, REPO_ROOT
+from cost_rental_alerts.source_labels import canonical_listing_url, display_source
 
 TZ = ZoneInfo("Europe/Dublin")
 SOURCE_LINK_PRIORITY = {
@@ -367,10 +368,11 @@ def income_range(scheme: Scheme) -> str:
 def render_source_links(scheme: Scheme) -> str:
     links = []
     for source in sort_source_links(scheme.sources):
-        label = escape(source.source or "Source")
-        if source.link:
+        label = escape(display_source(source.source))
+        link = canonical_listing_url(source.source, source.link)
+        if link:
             links.append(
-                f'<a class="source-link" href="{escape(source.link, quote=True)}" '
+                f'<a class="source-link" href="{escape(link, quote=True)}" '
                 f'target="_blank" rel="noopener noreferrer">{label}</a>'
             )
         else:
@@ -429,12 +431,11 @@ TEST_PHASE_NOTE = (
     "This app is in test phase. If you find inconsistencies, please use the Report "
     "button and we will work on fixing the problem."
 )
-SOURCE_PORTALS_NOTE = (
-    "We check Affordable Homes Ireland, LDA, Tuath Housing, Respond, Clúid, "
-    "Circle VHA and Oaklee every day. Co-operative Housing Ireland is monitored "
-    "for any future cost rental listings. Some providers, including Ó Cualann "
-    "and Fold Ireland, may still publish mainly through Affordable Homes Ireland."
-)
+SOURCE_PORTALS_NOTE = TRANSLATIONS["tip.sources"]["en"]
+
+
+def render_sources_tip_html() -> str:
+    return TRANSLATIONS["tip.sources"]["en"]
 
 
 def render_scheme_card(scheme: Scheme, *, extra_badges: Iterable[str] = ()) -> str:
@@ -589,14 +590,14 @@ def render_about_modal(*, issue_href: str) -> str:
       <section class="about-modal__section">
         <h3 data-i18n="about.how.title">How it works</h3>
         <p data-i18n="about.how.body">
-          We check Affordable Homes Ireland, LDA, Tuath, Respond, Clúid, Circle VHA
+          We check New Starter Homes, LDA, Tuath, Respond, Clúid, Circle VHA
           and Oaklee every morning, merge the results, and publish updates here and
           by email.
         </p>
       </section>
       <section class="about-modal__section">
         <h3 data-i18n="about.sources.title">Data sources</h3>
-        <p data-i18n="tip.sources">{escape(SOURCE_PORTALS_NOTE)}</p>
+        <div data-i18n-html="tip.sources">{render_sources_tip_html()}</div>
       </section>
       <section class="about-modal__section">
         <h3 data-i18n="about.email.title">Email alerts</h3>
@@ -665,9 +666,9 @@ def render_cost_rental_modal() -> str:
         <h3 data-i18n="cost_rental.who.title">Who provides it</h3>
         <p data-i18n="cost_rental.who.body">
           Schemes are run by approved Irish housing bodies and public agencies —
-          including Clúid, Respond, Circle VHA, Oaklee, Tuath, LDA and Affordable
-          Homes Ireland. We also watch Co-operative Housing Ireland. Others such as
-          Ó Cualann and Fold Ireland often appear via Affordable Homes Ireland.
+          including Clúid, Respond, Circle VHA, Oaklee, Tuath, LDA and New Starter
+          Homes. We also watch Co-operative Housing Ireland. Others such as
+          Ó Cualann and Fold Ireland often appear via New Starter Homes.
         </p>
       </section>
       <section class="cost-rental-modal__section">
@@ -682,7 +683,7 @@ def render_cost_rental_modal() -> str:
         <h3 data-i18n="cost_rental.apply.title">How to apply</h3>
         <p data-i18n="cost_rental.apply.body">
           When a scheme is open, apply through the provider&apos;s portal using the Apply
-          now links on this hub. We list opens from Affordable Homes, LDA, Tuath,
+          now links on this hub. We list opens from New Starter Homes, LDA, Tuath,
           Respond and other AHB sites so you do not miss a window.
         </p>
       </section>
@@ -724,7 +725,7 @@ def render_subscribe_modal() -> str:
       </p>
       <p class="subscribe-modal__lede-line">
         <span data-i18n="subscribe.lede_line2">
-          We check the main cost rental portals for you — including Affordable Homes,
+          We check the main cost rental portals for you — including New Starter Homes,
           LDA, Tuath, Respond, Clúid, Circle and Oaklee.
         </span>{render_info_tip("tip.sources")}
       </p>
@@ -773,11 +774,21 @@ def render_subscribe_modal() -> str:
 
 def render_info_tip(key: str) -> str:
     text = TRANSLATIONS[key]["en"]
+    if key == "tip.sources":
+        popup = (
+            f'<span class="info-tip__popup" data-i18n-html="{escape(key, quote=True)}">'
+            f"{text}</span>"
+        )
+    else:
+        popup = (
+            f'<span class="info-tip__popup" data-i18n="{escape(key, quote=True)}">'
+            f"{escape(text)}</span>"
+        )
     return (
         '<span class="info-tip" tabindex="0" role="button" data-i18n-aria="tip.section_info" '
         'aria-label="Section information">'
         '<span class="info-tip__icon" aria-hidden="true">i</span>'
-        f'<span class="info-tip__popup" data-i18n="{escape(key, quote=True)}">{escape(text)}</span>'
+        f"{popup}"
         "</span>"
     )
 
@@ -1193,6 +1204,17 @@ def render_html(
       text-transform: none;
       box-shadow: var(--shadow);
       z-index: 20;
+    }}
+    .info-tip__popup .info-tip__list {{
+      margin: 0;
+      padding-left: 1.1rem;
+    }}
+    .info-tip__popup .info-tip__list li {{
+      margin: 0.2rem 0;
+    }}
+    .info-tip__popup .info-tip__note {{
+      margin: 0.55rem 0 0;
+      font-size: 0.84rem;
     }}
     .info-tip__popup::before {{
       content: "";
@@ -2169,6 +2191,11 @@ def render_html(
         const key = element.dataset.i18n;
         const value = t(key, language);
         if (value) element.textContent = value;
+      }});
+      document.querySelectorAll("[data-i18n-html]").forEach((element) => {{
+        const key = element.dataset.i18nHtml;
+        const value = t(key, language);
+        if (value) element.innerHTML = value;
       }});
       document.querySelectorAll("[data-i18n-aria]").forEach((element) => {{
         const key = element.dataset.i18nAria;

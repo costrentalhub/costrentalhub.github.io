@@ -76,6 +76,10 @@ def resolve_export_status(
     """Map stored scraper status to CSV values: open, closed, opening soon."""
     ref = today or datetime.now(TZ).date()
 
+    normalized_status = (status or "").strip().lower().replace("_", " ")
+    if normalized_status in {"opening soon", "coming soon"}:
+        return "opening soon"
+
     if applications_close_at:
         try:
             close_at = date.fromisoformat(applications_close_at[:10])

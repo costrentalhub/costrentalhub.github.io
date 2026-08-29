@@ -2,7 +2,7 @@
 
 Daily scraper for affordable housing (cost rental) in Ireland.
 
-**Sources:** [affordablehomes.ie](https://affordablehomes.ie/rent/), [LDA](https://lda.ie/affordable-homes/lda-cost-rental/), [Tuath](https://tuathhousing.ie/cost-rental/), [Respond](https://www.respond.ie/cost-rental/), [Clúid](https://www.cluid.ie/cost-rental/), [Circle VHA](https://circlevha.ie/cost-rental/), [Oaklee](https://oaklee.ie/become-a-resident/cost-rental-housing), [CHI](https://www.cooperativehousing.ie/) (monitor)
+**Sources:** [New Starter Homes](https://newstarterhomes.ie/rent/) (formerly affordablehomes.ie), [LDA](https://lda.ie/affordable-homes/lda-cost-rental/), [Tuath](https://tuathhousing.ie/cost-rental/), [Respond](https://www.respond.ie/cost-rental/), [Clúid](https://www.cluid.ie/cost-rental/), [Circle VHA](https://circlevha.ie/cost-rental/), [Oaklee](https://oaklee.ie/become-a-resident/cost-rental-housing), [CHI](https://www.cooperativehousing.ie/) (monitor)
 
 **Output:** daily alert via **WhatsApp** (CallMeBot) and/or **email** (Gmail SMTP).
 

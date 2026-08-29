@@ -2,8 +2,10 @@ import unittest
 from datetime import date
 
 from cost_rental_alerts.models import Listing
+from cost_rental_alerts.export_csv import resolve_export_status
 from cost_rental_alerts.scrapers.affordablehomes import (
     _calendar_events,
+    _parse_coming_soon_page,
     _parse_listing_page,
     _resolve_calendar_dates,
 )
@@ -91,8 +93,59 @@ class AffordableHomesCalendarTests(unittest.TestCase):
         self.assertEqual(listings[0].status, "open")
         self.assertEqual(
             listings[0].url,
-            "https://affordablehomes.ie/rent/blessingtondemesne/",
+            "https://newstarterhomes.ie/rent/blessingtondemesne/",
         )
+
+    def test_parse_listing_page_marks_coming_soon_cards(self):
+        html = """
+        <article class="property soon df oh pr">
+          <h3>Ard Raithní</h3>
+          <p class="status fwb mz pa ttu">Coming Soon</p>
+          <p class="df location fwm"><span>Bearna, Co. Galway</span></p>
+          <footer>
+            <p class="link mz"><a class="button" href="ardraithni2/">Read More</a></p>
+          </footer>
+        </article>
+        """
+
+        listings = _parse_listing_page(html)
+
+        self.assertEqual(len(listings), 1)
+        self.assertEqual(listings[0].status, "coming_soon")
+
+    def test_parse_coming_soon_page_keeps_rent_listings_only(self):
+        html = """
+        <article class="property upcoming df oh pr">
+          <h3>Coola Meadows</h3>
+          <h4 class="pa ln">Category</h4>
+          <p>Properties to Buy</p>
+          <footer><p class="link mz"><a class="button" href="/buy/coolameadows/">Read More</a></p></footer>
+        </article>
+        <article class="property upcoming df oh pr">
+          <h3>Ard Raithní</h3>
+          <h4 class="pa ln">Category</h4>
+          <p>Properties to Rent</p>
+          <p class="price fwm">Prices starting from €1,380</p>
+          <p class="df location fwm"><span>Bearna, Co. Galway</span></p>
+          <footer><p class="link mz"><a class="button" href="/rent/ardraithni2/">Read More</a></p></footer>
+        </article>
+        """
+
+        listings = _parse_coming_soon_page(html)
+
+        self.assertEqual(len(listings), 1)
+        self.assertEqual(listings[0].title, "Ard Raithní")
+        self.assertEqual(listings[0].status, "coming_soon")
+        self.assertEqual(listings[0].url, "https://newstarterhomes.ie/rent/ardraithni2/")
+
+    def test_coming_soon_survives_past_close_date_in_export(self):
+        status = resolve_export_status(
+            "coming_soon",
+            "2025-08-31",
+            "2025-09-14",
+            today=date(2026, 8, 29),
+        )
+        self.assertEqual(status, "opening soon")
 
 
 if __name__ == "__main__":

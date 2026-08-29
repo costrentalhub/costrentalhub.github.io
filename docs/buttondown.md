@@ -36,7 +36,7 @@ Use the `<form>` embed (not `<iframe>`) so the hub modal can match site styling.
 **Name (set in Buttondown Settings):** Ireland Cost Rental Alerts
 
 **Description:**
-Daily cost rental scheme alerts for Ireland. Apply now and opening soon listings from Affordable Homes Ireland, LDA, Tuath, Respond, Clúid, Circle VHA, Oaklee and related portals. Updated every morning.
+Daily cost rental scheme alerts for Ireland. Apply now and opening soon listings from New Starter Homes, LDA, Tuath, Respond, Clúid, Circle VHA, Oaklee and related portals. Updated every morning.
 
 ## Hub integration
 

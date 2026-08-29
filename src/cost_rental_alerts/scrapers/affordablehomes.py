@@ -16,9 +16,10 @@ from cost_rental_alerts.scrapers.common import (
     parse_quantity,
 )
 
-BASE_URL = "https://affordablehomes.ie"
+BASE_URL = "https://newstarterhomes.ie"
 RENT_URL = f"{BASE_URL}/rent/"
 CALENDAR_URL = f"{BASE_URL}/rent/calendar/"
+COMING_SOON_URL = f"{BASE_URL}/coming-soon/"
 
 CalendarEventDate = date | Tuple[int, int]
 
@@ -221,6 +222,14 @@ def _resolve_calendar_dates(
     return None, None
 
 
+def _listing_button_href(article) -> str | None:
+    button = article.select_one("footer a.button[href]")
+    if not button:
+        return None
+    href = button.get("href", "").strip()
+    return href or None
+
+
 def _listing_slug(article) -> str | None:
     title_link = article.select_one("h3 a")
     if title_link:
@@ -228,13 +237,51 @@ def _listing_slug(article) -> str | None:
         if href:
             return href.split("/")[-1]
 
-    button = article.select_one("footer a.button[href]")
-    if button:
-        href = button.get("href", "").strip("/")
-        if href:
-            return href.split("/")[-1]
+    href = _listing_button_href(article)
+    if href:
+        return href.strip("/").split("/")[-1]
 
     return None
+
+
+def _listing_url(article, slug: str) -> str:
+    href = _listing_button_href(article)
+    if href:
+        normalized = href.lstrip("/")
+        if normalized.startswith(("rent/", "buy/")):
+            return urljoin(f"{BASE_URL}/", normalized)
+    return urljoin(RENT_URL, slug + "/")
+
+
+def _article_category(article) -> str:
+    for h4 in article.select("h4"):
+        if h4.get_text(strip=True).lower() == "category":
+            sibling = h4.find_next_sibling("p")
+            if sibling:
+                return sibling.get_text(strip=True)
+    return ""
+
+
+def _is_cost_rental_article(article, url: str) -> bool:
+    category = _article_category(article).lower()
+    if "rent" in category:
+        return True
+    return "/rent/" in url
+
+
+def _status_from_article(article, status_el) -> str:
+    classes = article.get("class", [])
+    if "open" in classes:
+        status = "open"
+    elif "soon" in classes or "upcoming" in classes:
+        status = "coming_soon"
+    elif "closed" in classes:
+        status = "closed"
+    else:
+        status = "unknown"
+    if status_el:
+        status = normalize_status(status_el.get_text())
+    return status
 
 
 def _listing_title(article) -> str | None:
@@ -247,27 +294,27 @@ def _listing_title(article) -> str | None:
     return h3.get_text(strip=True)
 
 
-def _parse_listing_page(html: str) -> List[Listing]:
+def _parse_listing_page(html: str, *, rent_only: bool = False) -> List[Listing]:
     soup = BeautifulSoup(html, "html.parser")
     listings: List[Listing] = []
 
     for article in soup.select("article.property"):
-        classes = article.get("class", [])
-        status = "open" if "open" in classes else "closed" if "closed" in classes else "unknown"
-
         slug = _listing_slug(article)
         title = _listing_title(article)
         if not slug or not title:
             continue
 
-        url = urljoin(RENT_URL, slug + "/")
+        url = _listing_url(article, slug)
+        if rent_only and not _is_cost_rental_article(article, url):
+            continue
 
         price_el = article.select_one("p.price")
         price = parse_price(price_el.get_text()) if price_el else None
 
         status_el = article.select_one("p.status")
-        if status_el:
-            status = normalize_status(status_el.get_text())
+        status = _status_from_article(article, status_el)
+        if rent_only and status == "unknown":
+            status = "coming_soon"
 
         location_el = article.select_one("p.location span")
         location = location_el.get_text(strip=True) if location_el else ""
@@ -294,6 +341,36 @@ def _parse_listing_page(html: str) -> List[Listing]:
         )
 
     return listings
+
+
+def _parse_coming_soon_page(html: str) -> List[Listing]:
+    return _parse_listing_page(html, rent_only=True)
+
+
+def _status_priority(status: str) -> int:
+    normalized = (status or "").replace("_", " ")
+    if normalized == "open":
+        return 3
+    if normalized in {"coming soon", "coming_soon"}:
+        return 2
+    return 1
+
+
+def _merge_listing(existing: Listing, incoming: Listing) -> Listing:
+    if _status_priority(incoming.status) > _status_priority(existing.status):
+        return incoming
+    return existing
+
+
+def _clear_stale_calendar_dates(listing: Listing, today: date) -> None:
+    if listing.status != "coming_soon":
+        return
+    close_at = _parse_iso_date(listing.applications_close_at)
+    if close_at and close_at < today:
+        listing.applications_close_at = None
+    open_at = _parse_iso_date(listing.applications_open_at)
+    if open_at and open_at < today - timedelta(days=120):
+        listing.applications_open_at = None
 
 
 def _detail_field(soup: BeautifulSoup, label: str) -> str | None:
@@ -432,8 +509,10 @@ def _enrich_listings(listings: List[Listing]) -> None:
                 listing.applications_open_at = open_at
             if close_at:
                 listing.applications_close_at = close_at
-            if status:
-                listing.status = status
+            if status == "open":
+                listing.status = "open"
+            elif status == "closed" and listing.status != "coming_soon":
+                listing.status = "closed"
         except Exception:
             continue
 
@@ -449,15 +528,29 @@ def _total_pages(html: str) -> int:
 def scrape_affordablehomes() -> List[Listing]:
     first_html = fetch(RENT_URL)
     pages = _total_pages(first_html)
-    listings: List[Listing] = []
-    seen_ids = set()
+    by_id: dict[str, Listing] = {}
 
     for page in range(1, pages + 1):
         html = first_html if page == 1 else fetch(f"{RENT_URL}?page={page}")
         for listing in _parse_listing_page(html):
-            if listing.id not in seen_ids:
-                seen_ids.add(listing.id)
-                listings.append(listing)
+            existing = by_id.get(listing.id)
+            if existing is None:
+                by_id[listing.id] = listing
+            else:
+                by_id[listing.id] = _merge_listing(existing, listing)
+
+    try:
+        coming_soon_html = fetch(COMING_SOON_URL)
+        for listing in _parse_coming_soon_page(coming_soon_html):
+            existing = by_id.get(listing.id)
+            if existing is None:
+                by_id[listing.id] = listing
+            else:
+                by_id[listing.id] = _merge_listing(existing, listing)
+    except Exception:
+        pass
+
+    listings = list(by_id.values())
 
     try:
         calendar_html = fetch(CALENDAR_URL)
@@ -477,6 +570,7 @@ def scrape_affordablehomes() -> List[Listing]:
             listing.applications_open_at = open_at
         if close_at:
             listing.applications_close_at = close_at
+        _clear_stale_calendar_dates(listing, today)
 
     _enrich_listings(listings)
     return listings

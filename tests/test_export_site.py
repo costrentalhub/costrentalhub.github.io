@@ -336,7 +336,7 @@ class ExportSiteTests(unittest.TestCase):
             "Updated daily from affordablehomes.ie, LDA, and Tuath Housing",
             html,
         )
-        self.assertIn("Affordable Homes Ireland", html)
+        self.assertIn("New Starter Homes", html)
         self.assertIn("LDA", html)
         self.assertIn("Tuath Housing", html)
         self.assertIn("Respond", html)
@@ -346,8 +346,10 @@ class ExportSiteTests(unittest.TestCase):
         self.assertIn("Co-operative Housing Ireland", html)
         self.assertIn("Ó Cualann", html)
         self.assertIn("Fold Ireland", html)
-        self.assertIn("We check Affordable Homes Ireland, LDA, Tuath Housing, Respond", html)
-        self.assertNotIn("usually publish their schemes through Affordable Homes Ireland", html)
+        self.assertIn('class="info-tip__list"', html)
+        self.assertIn("data-i18n-html", html)
+        self.assertNotIn("Affordable Homes Ireland", html)
+        self.assertNotIn("usually publish their schemes through", html)
         self.assertNotIn("scrape", html.lower())
 
     def test_subscribe_modal_and_hub_actions(self):
@@ -358,7 +360,7 @@ class ExportSiteTests(unittest.TestCase):
         self.assertIn(BUTTONDOWN_SUBSCRIBE_URL, html)
         self.assertIn('name="embed" value="1"', html)
         self.assertIn("subscribe-consent", html)
-        self.assertIn("Affordable Homes Ireland", html)
+        self.assertIn("New Starter Homes", html)
         self.assertIn("subscribe-not-now", html)
         self.assertIn(SUBSCRIBE_DISMISS_STORAGE_KEY, html)
         self.assertIn("data-open-subscribe", html)

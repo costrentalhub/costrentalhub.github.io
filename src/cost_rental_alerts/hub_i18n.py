@@ -23,17 +23,34 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "tip.sources": {
         "en": (
-            "We check Affordable Homes Ireland, LDA, Tuath Housing, Respond, Clúid, "
-            "Circle VHA and Oaklee every day. Co-operative Housing Ireland is monitored "
-            "for any future cost rental listings. Some providers, including Ó Cualann "
-            "and Fold Ireland, may still publish mainly through Affordable Homes Ireland."
+            '<ul class="info-tip__list">'
+            "<li>New Starter Homes</li>"
+            "<li>LDA</li>"
+            "<li>Tuath Housing</li>"
+            "<li>Respond</li>"
+            "<li>Clúid</li>"
+            "<li>Circle VHA</li>"
+            "<li>Oaklee</li>"
+            "<li>Co-operative Housing Ireland (monitored)</li>"
+            "</ul>"
+            '<p class="info-tip__note">'
+            "Ó Cualann and Fold Ireland often publish through New Starter Homes."
+            "</p>"
         ),
         "pt": (
-            "Verificamos todos os dias Affordable Homes Ireland, LDA, Tuath Housing, "
-            "Respond, Clúid, Circle VHA e Oaklee. A Co-operative Housing Ireland é "
-            "monitorizada para possíveis anúncios futuros de cost rental. Alguns "
-            "fornecedores, incluindo Ó Cualann e Fold Ireland, ainda podem publicar "
-            "principalmente pela Affordable Homes Ireland."
+            '<ul class="info-tip__list">'
+            "<li>New Starter Homes</li>"
+            "<li>LDA</li>"
+            "<li>Tuath Housing</li>"
+            "<li>Respond</li>"
+            "<li>Clúid</li>"
+            "<li>Circle VHA</li>"
+            "<li>Oaklee</li>"
+            "<li>Co-operative Housing Ireland (monitorizada)</li>"
+            "</ul>"
+            '<p class="info-tip__note">'
+            "Ó Cualann e Fold Ireland costumam publicar pela New Starter Homes."
+            "</p>"
         ),
     },
     "hero.updated": {"en": "Updated", "pt": "Atualizado"},
@@ -128,12 +145,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "subscribe.lede_line2": {
         "en": (
-            "We check the main cost rental portals for you — including Affordable Homes, "
+            "We check the main cost rental portals for you — including New Starter Homes, "
             "LDA, Tuath, Respond, Clúid, Circle and Oaklee."
         ),
         "pt": (
             "Verificamos os principais portais de cost rental por si — incluindo "
-            "Affordable Homes, LDA, Tuath, Respond, Clúid, Circle e Oaklee."
+            "New Starter Homes, LDA, Tuath, Respond, Clúid, Circle e Oaklee."
         ),
     },
     "subscribe.email": {"en": "Email", "pt": "Email"},
@@ -186,12 +203,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "about.how.title": {"en": "How it works", "pt": "Como funciona"},
     "about.how.body": {
         "en": (
-            "We check Affordable Homes Ireland, LDA, Tuath, Respond, Clúid, Circle VHA "
+            "We check New Starter Homes, LDA, Tuath, Respond, Clúid, Circle VHA "
             "and Oaklee every morning, merge the results, and publish updates here and "
             "by email."
         ),
         "pt": (
-            "Verificamos Affordable Homes Ireland, LDA, Tuath, Respond, Clúid, Circle VHA "
+            "Verificamos New Starter Homes, LDA, Tuath, Respond, Clúid, Circle VHA "
             "e Oaklee todas as manhãs, unimos os resultados e publicamos atualizações "
             "aqui e por email."
         ),
@@ -257,16 +274,16 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "cost_rental.who.body": {
         "en": (
             "Schemes are run by approved Irish housing bodies and public agencies — "
-            "including Clúid, Respond, Circle VHA, Oaklee, Tuath, LDA and Affordable "
-            "Homes Ireland. We also watch Co-operative Housing Ireland. Others such as "
-            "Ó Cualann and Fold Ireland often appear via Affordable Homes Ireland."
+            "including Clúid, Respond, Circle VHA, Oaklee, Tuath, LDA and New Starter "
+            "Homes. We also watch Co-operative Housing Ireland. Others such as Ó Cualann "
+            "and Fold Ireland often appear via New Starter Homes."
         ),
         "pt": (
             "Os esquemas são geridos por entidades de habitação irlandesas aprovadas e "
             "agências públicas — incluindo Clúid, Respond, Circle VHA, Oaklee, Tuath, "
-            "LDA e Affordable Homes Ireland. Também acompanhamos a Co-operative Housing "
+            "LDA e New Starter Homes. Também acompanhamos a Co-operative Housing "
             "Ireland. Outros, como Ó Cualann e Fold Ireland, costumam aparecer pela "
-            "Affordable Homes Ireland."
+            "New Starter Homes."
         ),
     },
     "cost_rental.diff.title": {"en": "How it differs", "pt": "Em que difere"},
@@ -288,12 +305,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "cost_rental.apply.body": {
         "en": (
             "When a scheme is open, apply through the provider's portal using the Apply "
-            "now links on this hub. We list opens from Affordable Homes, LDA, Tuath, "
+            "now links on this hub. We list opens from New Starter Homes, LDA, Tuath, "
             "Respond and other AHB sites so you do not miss a window."
         ),
         "pt": (
             "Quando um esquema está aberto, candidate-se no portal do fornecedor através "
-            "dos links Apply now neste hub. Listamos aberturas da Affordable Homes, LDA, "
+            "dos links Apply now neste hub. Listamos aberturas da New Starter Homes, LDA, "
             "Tuath, Respond e outros sites de AHBs para não perder o prazo."
         ),
     },
