@@ -3,4 +3,6 @@ name,location,address,price,quantity,beds,status,income_min,income_max,listed_at
 "Ballycomyn, Blessington",Wicklow - Blessington,"Ballycomyn, Blessington, Co. Wicklow, Ireland",1087,24,1-3,open,,,25/08/2026,26/08/2026,16/09/2026,affordablehomes,https://newstarterhomes.ie/rent/blessingtondemesne/
 "Cornamaddy Court, Athlone, Co. Westmeath",Westmeath - Athlone,"Cornamaddy Court, Athlone, Co. Westmeath, Ireland",1010,30,1-2,open,,,03/09/2026,04/09/2026,,affordablehomes,https://newstarterhomes.ie/rent/cornmaddy/
 "Folkstown Park, Balbriggan, Co Dublin (Phase 2)",Dublin - Balbriggan,"Folkstown Park, Balbriggan, Co. Dublin, Ireland",1100,24,1-3,open,,,07/09/2026,11/09/2026,,affordablehomes,https://newstarterhomes.ie/rent/folkstown/
+Longview Phase 2,Ireland - Longview Phase 2,"Longview Phase 2, Ireland",1455,,1-2,open,,,,,,cluid,https://www.cluid.ie/property/longview-phase-2/
 The Paddocks,Kildare - Newbridge,"The Paddocks, Morristown, Newbridge, Co. Kildare, Ireland",1093,1,2,open,,,19/08/2026,,,affordablehomes,https://newstarterhomes.ie/rent/thepaddocks/
+The Willows,Ireland - The Willows,"The Willows, Ireland",1313,,1-2,open,,,,,,cluid,https://www.cluid.ie/property/the-willows/
