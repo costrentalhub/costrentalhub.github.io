@@ -21,8 +21,8 @@ An Tobar,Galway - Rahoon,"An Tobar, Letteragh Road, Rahoon, Co. Galway, Ireland"
 Archers Wood,Ireland,"Apartment 24, Archer's Wood View, Delgany, Archer's Wood, Co. Wicklow, A63 X6P1, Ireland",1170,5,1-3,closed,41829,59000,,,12/10/2023,lda,https://lda.ie/homes/lda-cost-rental/archers-wood-avenue
 Archers Wood,Ireland,"Archers Wood, Ireland",,,2,closed,,,,,,lda,https://lda.ie/homes/lda-cost-rental/archers-wood
 Archers Wood View Apartments,Wicklow - Delgany,"Archers Wood View Apartments, Delgany, Co. Wicklow, Ireland",1220,94,1-3,closed,,,25/09/2023,05/10/2023,12/10/2023,affordablehomes,https://newstarterhomes.ie/rent/archers-wood-view-apartments/
-Ard na Saili,Ireland - Ard na Saili,"Ard na Saili, Ireland",1200,,1-2,open,,,,,,cluid,https://www.cluid.ie/property/ard-na-saili/
-Ard na Sailí,Cork - Carrigtwohill,"Ard na Sailí, Carrigtwohill, Co. Cork, Ireland",1200,35,2-3,open,,,07/10/2026,07/10/2026,21/10/2026,affordablehomes,https://newstarterhomes.ie/rent/ardnasaili/
+Ard na Saili,Ireland - Ard na Saili,"Ard na Saili, Ireland",1200,,1-2,closed,,,,,,cluid,https://www.cluid.ie/property/ard-na-saili/
+Ard na Sailí,Cork - Carrigtwohill,"Ard na Sailí, Carrigtwohill, Co. Cork, Ireland",1200,35,2-3,closed,,,07/10/2026,07/10/2026,21/10/2026,affordablehomes,https://newstarterhomes.ie/rent/ardnasaili/
 Ard Raithní,Galway - Bearna,"Ard Raithní, Bearna, Co. Galway, Ireland",1590,1,3,closed,,,24/08/2026,24/08/2026,07/09/2026,affordablehomes,https://newstarterhomes.ie/rent/ardraithni/
 Ard Raithní,Galway - Bearna,"Ard Raithní, Bearna, Co. Galway, Ireland",1380,1,2,closed,,,28/08/2026,31/08/2026,14/09/2026,affordablehomes,https://newstarterhomes.ie/rent/ardraithni2/
 Ard Raithní,Galway - Bearna,"Ard Raithní, Bearna, Co. Galway, Ireland",1380,,2-3,closed,,,,,,tuath,https://tuathhousing.ie/properties/ard-raithni/
@@ -82,7 +82,7 @@ Cookstown Gateway,Dublin - Cookstown,"Cookstown Gateway, Cookstown, Co. Dublin, 
 "Cookstown Gateway, Cookstown, Dublin 24",Dublin - D24 Cookstown,"Cookstown Gateway, Cookstown, Dublin 24, Ireland",1000,4,studio-2,closed,34286,66000,,,27/06/2024,lda,https://lda.ie/homes/lda-cost-rental/cookstown-gateway
 "Cookstown Gateway, Cookstown, Dublin 24",Dublin - D24 Cookstown,"Cookstown Gateway, Cookstown, Dublin 24, Ireland",1574,1,2,closed,51429,66000,,,17/06/2026,lda,https://lda.ie/homes/lda-cost-rental/cookstown-gateway-cookstown-dublin-24-4
 "Cookstown Gateway, Cookstown, Dublin 24",Dublin - D24 Cookstown,"Cookstown Gateway, Cookstown, Dublin 24, Ireland",1225,1,1,closed,42000,66000,,,06/08/2026,lda,https://lda.ie/homes/lda-cost-rental/cookstown-gateway-cookstown-dublin-24-5
-"Cookstown Gateway, Cookstown, Dublin 24",Dublin - D24 Cookstown,"Cookstown Gateway, Cookstown, Dublin 24, Ireland",1017,3,studio-2,open,34286,66000,,,22/10/2026,lda,https://lda.ie/homes/lda-cost-rental/cookstown-gateway-cookstown-dublin-24-6
+"Cookstown Gateway, Cookstown, Dublin 24",Dublin - D24 Cookstown,"Cookstown Gateway, Cookstown, Dublin 24, Ireland",1017,3,studio-2,closed,34286,66000,,,,lda,https://lda.ie/homes/lda-cost-rental/cookstown-gateway-cookstown-dublin-24-6
 Coolevally,Dublin - Shankill,"Coolevally, Shankill, Co. Dublin, Ireland",1175,104,1-2,closed,,,10/11/2025,10/11/2025,12/01/2026,affordablehomes,https://newstarterhomes.ie/rent/coolvally/
 Coolevally,Dublin - D18 Shankill,"Coolevally, Shankill, Dublin 18, Ireland",1175,104,1-2,closed,,,,,,tuath,https://tuathhousing.ie/properties/coolevally/
 Cooper Square,Dublin - D22 Clonburris,"Cooper Square, Seven Mills, Clonburris, Dublin 22, Co. Dublin, Ireland",1350,229,1-3,closed,,,19/11/2025,17/11/2025,24/11/2025,affordablehomes,https://newstarterhomes.ie/rent/coopersquare/
@@ -154,6 +154,8 @@ Harpur Lane,Kildare - Leixlip,"Harpur Lane, Leixlip, Co. Kildare, Ireland",1357,
 "Harpur Lane, Leixlip, Co. Kildare",Kildare - Leixlip,"Harpur Lane, Leixlip, Co. Kildare, Ireland",1357,1,1,closed,46526,59000,,,28/04/2026,lda,https://lda.ie/homes/lda-cost-rental/harpur-lane-leixlip-co-kildare
 "Harpur Lane, Leixlip, Co. Kildare",Kildare - Leixlip,"Harpur Lane, Leixlip, Co. Kildare, Ireland",1357,2,1-2,closed,46526,59000,,,22/01/2024,lda,https://lda.ie/homes/lda-cost-rental/harpurs-lane
 Hearthfield,Louth - Dundalk,"Hearthfield, Mount Avenue, Dundalk, Co. Louth, Ireland",1122,24,2-3,closed,,,10/08/2026,12/08/2026,27/08/2026,affordablehomes,https://newstarterhomes.ie/rent/hearthfield/
+"Horgan's Quay, Co. Cork - General Lottery",Cork,"Horgan's Quay, Co. Cork - General Lottery, Ireland",1345,3,1-2,opening soon,47829,59000,,,,lda,https://lda.ie/homes/lda-cost-rental/horgans-quay-co-cork-general-lottery
+"Horgan's Quay, Co. Cork - Local Employment Lottery",Cork,"Horgan's Quay, Co. Cork - Local Employment Lottery, Ireland",1395,3,1-2,opening soon,47829,59000,,,,lda,https://lda.ie/homes/lda-cost-rental/horgans-quay-co-cork-local-employment-lottery
 Innovation Square,Dublin - Belgard,"Innovation Square, Belgard, Co. Dublin, Ireland",950,133,1-3,closed,,,31/10/2025,03/11/2025,12/11/2025,affordablehomes,https://newstarterhomes.ie/rent/innovationsquare/
 Kilcarbery Grange,Dublin - Clondalkin,"Kilcarbery Grange, Clondalkin, Co. Dublin, Ireland",1295,1,1,closed,,,09/04/2026,09/04/2026,16/04/2026,affordablehomes,https://newstarterhomes.ie/rent/kilcarberygrange1/
 Kilcarbery Grange,Dublin - Clondalkin,"Kilcarbery Grange, Clondalkin, Co. Dublin, Ireland",1295,1,1,closed,,,17/10/2025,17/10/2025,24/10/2025,affordablehomes,https://newstarterhomes.ie/rent/kilcarberygrange/
@@ -162,7 +164,7 @@ Kilcarbery Grange,Dublin - D22 Clondalkin,"Kilcarbery Grange, Clondalkin, Dublin
 Kilcarbery Grange (The Rowans and The Ashes),Dublin - D22 Clondalkin,"Kilcarbery Grange (The Rowans and The Ashes), Clondalkin, Dublin 22, Ireland",1285,,1-3,closed,,,,,,tuath,https://tuathhousing.ie/properties/kilcarbery-grange/
 "Kilcarbery Grange, Clondalkin, Dublin 22",Dublin - D22 Clondalkin,"Kilcarbery Grange, Clondalkin, Co. Dublin, Ireland",1296,1,2,closed,,,31/08/2026,01/09/2026,08/09/2026,affordablehomes,https://newstarterhomes.ie/rent/kilcarbey/
 "Kilcarbery Grange, Clondalkin, Dublin 22",Dublin - D22 Clondalkin,"Kilcarbery Grange, Clondalkin, Co. Dublin, Ireland",1054,1,1,closed,,,04/09/2026,07/09/2026,14/09/2026,affordablehomes,https://newstarterhomes.ie/rent/kil/
-"Kilcarbery Grange, Clondalkin, Dublin 22",Dublin - D22 Clondalkin,"Kilcarbery Grange, Clondalkin, Co. Dublin, Ireland",1799,1,3,opening soon,,,20/10/2026,,,affordablehomes,https://newstarterhomes.ie/rent/kilcarberygrange3/
+"Kilcarbery Grange, Clondalkin, Dublin 22",Dublin - D22 Clondalkin,"Kilcarbery Grange, Clondalkin, Co. Dublin, Ireland",1799,1,3,open,,,20/10/2026,21/10/2026,28/10/2026,affordablehomes,https://newstarterhomes.ie/rent/kilcarberygrange3/
 Kilmartin Grove,Dublin - Hollystown,"Kilmartin Grove, Hollystown, Co. Dublin, Ireland",1390,1,2,closed,,,20/02/2026,20/02/2026,27/02/2026,affordablehomes,https://newstarterhomes.ie/rent/kilmartingrove4/
 Kilmartin Grove,Dublin - Hollystown,"Kilmartin Grove, Hollystown, Co. Dublin, Ireland",1254,1,1,closed,,,23/01/2026,23/01/2026,30/01/2026,affordablehomes,https://newstarterhomes.ie/rent/kilmartin-grove-0126/
 Kilmartin Grove,Dublin - Hollystown,"Kilmartin Grove, Hollystown, Co. Dublin, Ireland",1668,1,3,closed,,,22/12/2025,22/12/2025,29/12/2025,affordablehomes,https://newstarterhomes.ie/rent/kilmartin-grove-1225/
@@ -314,7 +316,7 @@ Warrens Court,Cork,"Warrens Court, Barnahely, Ringaskiddy, Co. Cork, Ireland",11
 Whitehaven,Dublin - Santry,"Whitehaven, Northwood, Santry, Co. Dublin, Ireland",1697,1,2,closed,,,01/05/2025,01/05/2026,08/05/2026,affordablehomes,https://newstarterhomes.ie/rent/whitehaven1/
 Whitehaven,Ireland - Santry,"Whitehaven, Northwood, Santry, Ireland",1395,,1-3,closed,,,,,,tuath,https://tuathhousing.ie/properties/whitehaven/
 "Whitehaven, Northwood, Santry",Dublin - Northwood,"Whitehaven, Northwood, Co. Dublin, Ireland",1395,174,1-3,closed,,,19/06/2025,19/06/2025,24/07/2025,affordablehomes,https://newstarterhomes.ie/rent/whitehaven/
-"Whitehaven, Northwood, Santry",Dublin - Santry,"Whitehaven, Santry, Co. Dublin, Ireland",1697,1,2,opening soon,,,20/10/2026,,,affordablehomes,https://newstarterhomes.ie/rent/whitehave/
+"Whitehaven, Northwood, Santry",Dublin - Santry,"Whitehaven, Santry, Co. Dublin, Ireland",1697,1,2,open,,,20/10/2026,21/10/2026,28/10/2026,affordablehomes,https://newstarterhomes.ie/rent/whitehave/
 Woodbrook,Dublin - Shankill,"Woodbrook, Shankill, Co. Dublin, Ireland",1495,327,1-2,open,,,20/10/2026,20/10/2026,27/10/2026,affordablehomes,https://newstarterhomes.ie/rent/woodbrook1/
 "Woodbrook, Shankill, Dublin 18",Dublin - D18 Shankill,"Woodbrook, Shankill, Dublin 18, Ireland",1495,3,1-2,open,51257,66000,,,,lda,https://lda.ie/homes/lda-cost-rental/woodbrook-shankill-dublin-18
 Woodside Rise,Dublin - D18 Enniskerry,"Woodside Rise, Enniskerry, Dublin 18, Co. Dublin, Ireland",1257,1,2,closed,,,13/07/2026,13/07/2026,20/07/2026,affordablehomes,https://newstarterhomes.ie/rent/woodsiderise/
