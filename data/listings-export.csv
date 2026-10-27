@@ -157,7 +157,10 @@ Harpur Lane,Kildare - Leixlip,"Harpur Lane, Leixlip, Co. Kildare, Ireland",1357,
 "Harpur Lane, Leixlip, Co. Kildare",Kildare - Leixlip,"Harpur Lane, Leixlip, Co. Kildare, Ireland",1357,2,1-2,closed,46526,59000,,,22/01/2024,lda,https://lda.ie/homes/lda-cost-rental/harpurs-lane
 Hearthfield,Louth - Dundalk,"Hearthfield, Mount Avenue, Dundalk, Co. Louth, Ireland",1122,24,2-3,closed,,,10/08/2026,12/08/2026,27/08/2026,affordablehomes,https://newstarterhomes.ie/rent/hearthfield/
 "Horgan's Quay, Co. Cork - General Lottery",Cork,"Horgan's Quay, Co. Cork - General Lottery, Ireland",1345,3,1-2,opening soon,47829,59000,,,,lda,https://lda.ie/homes/lda-cost-rental/horgans-quay-co-cork-general-lottery
+"Horgan's Quay, Co. Cork - General Lottery",Cork,"Horgan's Quay, Co. Cork - General Lottery, Ireland",1345,3,1-2,open,47829,59000,,,03/11/2026,lda,https://lda.ie/homes/lda-cost-rental/horgans-quay-cork-city-general-lottery
 "Horgan's Quay, Co. Cork - Local Employment Lottery",Cork,"Horgan's Quay, Co. Cork - Local Employment Lottery, Ireland",1395,3,1-2,opening soon,47829,59000,,,,lda,https://lda.ie/homes/lda-cost-rental/horgans-quay-co-cork-local-employment-lottery
+"Horgan's Quay, Co. Cork - Local Employment Lottery",Cork,"Horgan's Quay, Co. Cork - Local Employment Lottery, Ireland",1395,3,1-2,open,47829,59000,,,03/11/2026,lda,https://lda.ie/homes/lda-cost-rental/horgans-quay-cork-city-local-employment-lottery
+Horgan’s Quay,Cork - Cork City,"Horgan’s Quay, Cork City, Co. Cork, Ireland",1395,192,1-2,open,,,27/10/2026,27/10/2026,03/11/2026,affordablehomes,https://newstarterhomes.ie/rent/horgansquay/
 Innovation Square,Dublin - Belgard,"Innovation Square, Belgard, Co. Dublin, Ireland",950,133,1-3,closed,,,31/10/2025,03/11/2025,12/11/2025,affordablehomes,https://newstarterhomes.ie/rent/innovationsquare/
 Kilcarbery Grange,Dublin - Clondalkin,"Kilcarbery Grange, Clondalkin, Co. Dublin, Ireland",1295,1,1,closed,,,09/04/2026,09/04/2026,16/04/2026,affordablehomes,https://newstarterhomes.ie/rent/kilcarberygrange1/
 Kilcarbery Grange,Dublin - Clondalkin,"Kilcarbery Grange, Clondalkin, Co. Dublin, Ireland",1295,1,1,closed,,,17/10/2025,17/10/2025,24/10/2025,affordablehomes,https://newstarterhomes.ie/rent/kilcarberygrange/
@@ -196,7 +199,7 @@ Longview Phase 2,Ireland - Longview Phase 2,"Longview Phase 2, Ireland",1455,,1-
 "Longview, Whites Cross, Cork City",Cork - Longview,"Longview, Co. Cork, Ireland",1455,52,3-4,closed,,,17/09/2026,16/09/2026,30/09/2026,affordablehomes,https://newstarterhomes.ie/rent/long/
 Maple Woods,Cork - Midleton,"Maple Woods, Midleton, Co. Cork, Ireland",1250,,2-3,closed,,,,,,tuath,https://tuathhousing.ie/properties/maple-woods/
 "Maple Woods, Ballinacurra, Midleton",Cork - Midleton,"Maple Woods, Midleton, Co. Cork, Ireland",1250,40,2-3,closed,,,14/08/2025,14/08/2025,19/09/2025,affordablehomes,https://newstarterhomes.ie/rent/maple-woods-0825/
-"Mariners Way, Rush, Co. Dublin",Dublin - Rush,"Mariners Way, Rush, Co. Dublin, Ireland",1155,,1-2,open,,,,,26/10/2026,respond,https://www.respond.ie/properties/mariners-way/
+"Mariners Way, Rush, Co. Dublin",Dublin - Rush,"Mariners Way, Rush, Co. Dublin, Ireland",1155,,1-2,closed,,,,,26/10/2026,respond,https://www.respond.ie/properties/mariners-way/
 "Millers Glen, Oldtown, Swords, Co. Dublin",Dublin - Swords,"Millers Glen, Swords, Co. Dublin, Ireland",1395,30,1-3,closed,,,21/09/2026,24/09/2026,08/10/2026,affordablehomes,https://newstarterhomes.ie/rent/millers/
 Montpelier,Dublin - D7,"Montpelier, Dublin 7, Co. Dublin, Ireland",1490,75,1-3,closed,,,26/03/2026,30/03/2026,20/04/2026,affordablehomes,https://newstarterhomes.ie/rent/montpelier/
 Montpelier,Dublin - D7,"Montpelier, Dublin 7, Ireland",1490,75,1-3,closed,,,,,20/04/2026,tuath,https://tuathhousing.ie/properties/montpelier/
@@ -319,8 +322,8 @@ Whitehaven,Dublin - Santry,"Whitehaven, Northwood, Santry, Co. Dublin, Ireland",
 Whitehaven,Ireland - Santry,"Whitehaven, Northwood, Santry, Ireland",1395,,1-3,closed,,,,,,tuath,https://tuathhousing.ie/properties/whitehaven/
 "Whitehaven, Northwood, Santry",Dublin - Northwood,"Whitehaven, Northwood, Co. Dublin, Ireland",1395,174,1-3,closed,,,19/06/2025,19/06/2025,24/07/2025,affordablehomes,https://newstarterhomes.ie/rent/whitehaven/
 "Whitehaven, Northwood, Santry",Dublin - Santry,"Whitehaven, Santry, Co. Dublin, Ireland",1697,1,2,open,,,20/10/2026,21/10/2026,28/10/2026,affordablehomes,https://newstarterhomes.ie/rent/whitehave/
-Woodbrook,Dublin - Shankill,"Woodbrook, Shankill, Co. Dublin, Ireland",1495,327,1-2,open,,,20/10/2026,20/10/2026,27/10/2026,affordablehomes,https://newstarterhomes.ie/rent/woodbrook1/
-"Woodbrook, Shankill, Dublin 18",Dublin - D18 Shankill,"Woodbrook, Shankill, Dublin 18, Ireland",1495,3,1-2,open,51257,66000,,,,lda,https://lda.ie/homes/lda-cost-rental/woodbrook-shankill-dublin-18
+Woodbrook,Dublin - Shankill,"Woodbrook, Shankill, Co. Dublin, Ireland",1495,327,1-2,closed,,,20/10/2026,20/10/2026,27/10/2026,affordablehomes,https://newstarterhomes.ie/rent/woodbrook1/
+"Woodbrook, Shankill, Dublin 18",Dublin - D18 Shankill,"Woodbrook, Shankill, Dublin 18, Ireland",1495,3,1-2,closed,51257,66000,,,,lda,https://lda.ie/homes/lda-cost-rental/woodbrook-shankill-dublin-18
 Woodside Rise,Dublin - D18 Enniskerry,"Woodside Rise, Enniskerry, Dublin 18, Co. Dublin, Ireland",1257,1,2,closed,,,13/07/2026,13/07/2026,20/07/2026,affordablehomes,https://newstarterhomes.ie/rent/woodsiderise/
 "Woodside Rise, Enniskerry, D18",Dublin - D18 Stepaside,"Woodside Rise, Stepaside, Dublin 18, Co. Dublin, Ireland",1224,1,2,closed,,,05/09/2025,05/09/2025,12/09/2025,affordablehomes,https://newstarterhomes.ie/rent/woodside-rise-0925/
 "Woodside, Enniskerry Road, Stepaside, Co. Dublin.",Dublin - Stepaside,"Woodside, Enniskerry Road, Stepaside, Co. Dublin., Ireland",1294,,1-2,closed,,,,,,respond,https://www.respond.ie/properties/woodside-enniskerry-road-stepaside-co-dublin/
