@@ -1,11 +1,7 @@
 name,location,address,price,quantity,beds,status,income_min,income_max,listed_at,open_on,close_on,source,link
 "Farranshock Park, Mullingar, Co. Westmeath",Westmeath - Mullingar,"Farranshock Park, Mullingar, Co. Westmeath, Ireland",1290,1,3,open,,,18/11/2026,20/11/2026,27/11/2026,affordablehomes,https://newstarterhomes.ie/rent/farran/
-Ferrard Court,Louth - Drogheda,"Ferrard Court, Drogheda, Co. Louth, Ireland",1150,1,3,open,,,17/11/2026,18/11/2026,25/11/2026,affordablehomes,https://newstarterhomes.ie/rent/ferrardcourt/
-Parkside,Ireland - Parkside,"Parkside, Ireland",1447,,1-2,open,,,,,,cluid,https://www.cluid.ie/property/parkside-nov26/
-"Parkside, Belmayne, Dublin 13",Dublin - D13 Belmayne,"Parkside, Dublin 13, Co. Dublin, Ireland",1447,1,1,open,,,18/11/2026,18/11/2026,25/11/2026,affordablehomes,https://newstarterhomes.ie/rent/par/
-Stoneview,Ireland - Stoneview,"Stoneview, Ireland",1406,,1-2,open,,,,,,cluid,https://www.cluid.ie/property/stoneview-nov26/
-"Stoneview, Walkinstown, Dublin 12",Dublin - D12 Walkinstown,"Stoneview, Walkinstown, Co. Dublin, Ireland",1406,1,1,open,,,18/11/2026,18/11/2026,25/11/2026,affordablehomes,https://newstarterhomes.ie/rent/stone/
-The Maltings,Ireland - The Maltings,"The Maltings, Ireland",1237,,1-2,open,,,,,,cluid,https://www.cluid.ie/property/the-maltings-nov26/
-"The Maltings, Portlaoise, Co. Laois",Laois - Portlaoise,"The Maltings, Portlaoise, Co. Laois, Ireland",1237,1,2,open,,,18/11/2026,18/11/2026,25/11/2026,affordablehomes,https://newstarterhomes.ie/rent/malt/
-The Paddocks,Dublin - Skerries,"The Paddocks, Skerries, Co. Dublin, Ireland",1300,1,1,open,,,17/11/2026,18/11/2026,25/11/2026,affordablehomes,https://newstarterhomes.ie/rent/thepaddocks1/
+Foxwood Barn,Dublin - D24 Citywest,"Foxwood Barn, Citywest, Co. Dublin 24, Co. Dublin, Ireland",1395,1,1,open,,,25/11/2026,24/11/2026,30/11/2026,affordablehomes,https://newstarterhomes.ie/rent/foxwoodbarn3/
+Oscar Traynor Woods – Phase Two,Ireland - Oscar Traynor Woods – Phase Two,"Oscar Traynor Woods – Phase Two, Ireland",1245,,1-2,open,,,,,,cluid,https://www.cluid.ie/property/oscar-traynor-woods-phase-two/
+"Oscar Traynor Woods, Coolock Lane, Coolock, Dublin 17",Dublin - D17 Coolock,"Oscar Traynor Woods, Coolock Lane, Coolock, Dublin 17, Co. Dublin, Ireland",1245,10,1,open,,,24/11/2026,25/11/2026,09/12/2026,affordablehomes,https://newstarterhomes.ie/rent/oscar/
+Semple Woods,Dublin - Donabate,"Semple Woods, Donabate, Co. Dublin, Ireland",1327,1,1,open,,,25/11/2026,23/11/2026,30/11/2026,affordablehomes,https://newstarterhomes.ie/rent/semplewoods2/
 "Walker’s Gate, Kildare Town, Co. Kildare",Kildare - Kildare Town,"Walker’s Gate, Kildare Town, Co. Kildare, Ireland",1306,1,3,open,,,18/11/2026,20/11/2026,27/11/2026,affordablehomes,https://newstarterhomes.ie/rent/walk/
